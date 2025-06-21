@@ -2006,13 +2006,15 @@
         </div>
           <div class="control-buttons">
             <button class="btn btn-primary" onclick="addCandidate()">
-                ➕ Add Candidate
-            </button>
+                ➕ Add Candidate            </button>
             <button class="btn btn-secondary" onclick="exportData()">
                 📊 Export to Excel
             </button>
             <button class="btn btn-secondary" onclick="window.open('history.html', '_blank')">
                 📋 History
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                🗑️ Clear All Data
             </button>
         </div>
     </div>
@@ -2270,75 +2272,11 @@
                 console.error('Error deleting candidate:', error);
                 throw error;
             }
-        }
-
-        // Initialize with sample data (fallback)
+        }        // Initialize with empty data (no sample data)
         function initializeWithSampleData() {
-            const sampleData = [
-                {
-                    id: 1,
-                    name: "MD Ashhaad Sadique",
-                    email: "ashhaad@example.com",
-                    phone: "+1234567890",
-                    status: "Interview",
-                    document: "resume_ashhaad.pdf",
-                    interview: "2025-06-27T14:00",
-                    interviewType: "First Round",
-                    company: "TechCorp",
-                    project: "",
-                    date: "",
-                    blockers: [],
-                    remarks: "Awaiting Interview"
-                },
-                {
-                    id: 2,
-                    name: "Sarah Johnson",
-                    email: "sarah@example.com", 
-                    phone: "+1234567891",
-                    status: "Working",
-                    document: "resume_sarah.pdf",
-                    interview: "2025-06-20T10:00",
-                    interviewType: "Technical",
-                    company: "Protos Solutions",
-                    project: "Web Development",
-                    date: "2025-06-01",
-                    blockers: [],
-                    remarks: "Active Employee"
-                },
-                {
-                    id: 3,
-                    name: "Mike Wilson",
-                    email: "mike@example.com",
-                    phone: "+1234567892", 
-                    status: "L2",
-                    document: "resume_mike.pdf",
-                    interview: "2025-06-25T16:00",
-                    interviewType: "Second Round",
-                    company: "",
-                    project: "",
-                    date: "",
-                    blockers: [],
-                    remarks: "L2 Interview Scheduled"
-                },
-                {
-                    id: 4,
-                    name: "Emily Davis",
-                    email: "emily@example.com",
-                    phone: "+1234567893",
-                    status: "Idle",
-                    document: "",
-                    interview: "",
-                    interviewType: "",
-                    company: "",
-                    project: "",
-                    date: "",
-                    blockers: ["Visa processing"],
-                    remarks: "Currently Idle"
-                }            ];
-
-            // Use sample data as fallback
-            candidates = sampleData;
-            console.log('Initialized with sample data');
+            // Start with empty candidates array
+            candidates = [];
+            console.log('Initialized with empty data - no sample candidates');
         }
 
         // Initialize the application with API data
@@ -3360,9 +3298,8 @@
                         showToast('Name and email are required', 'error');
                         return false;
                     }
-                    
-                    const newCandidate = {
-                    id: candidateId,
+                      const newCandidate = {
+                    // Don't include ID here - let the API generate it
                     name: name,
                     email: email,
                     phone: document.getElementById('modalPhone').value,
@@ -3374,8 +3311,8 @@
                     interviewType: "", // Empty interview type initially
                     date: "", // Empty date initially
                     blockers: [],
-                    remarks: getRemarksByStatus(status),
-                    uniqueLink: generatePermanentLink(candidateId, email)                    };
+                    remarks: getRemarksByStatus(status)
+                    };
                     
                     console.log('New candidate object:', newCandidate);
                     
@@ -3417,8 +3354,8 @@
                 }
             } else {
                 console.log('Updating existing candidate');                // Update existing candidate
-                const candidateId = parseInt(candidateIdData);
-                const candidate = candidates.find(c => c.id === candidateId);
+                const candidateId = candidateIdData; // Keep as string, don't parse to int
+                const candidate = candidates.find(c => c.id == candidateId); // Use == for loose comparison
                 
                 if (candidate) {
                     const status = document.getElementById('modalStatus').value;
@@ -3765,8 +3702,8 @@
                     // Delete from API first
                     await deleteCandidateFromAPI(candidateId);
                     
-                    // Remove from local array
-                    candidates = candidates.filter(c => c.id !== candidateId);
+                    // Remove from local array (use loose comparison for ID)
+                    candidates = candidates.filter(c => c.id != candidateId);
                     
                     renderTable();
                     updateDashboard();
@@ -4194,9 +4131,38 @@
             const filename = `ProtosNexus_${dateStr}.xlsx`;
 
             // Download the Excel file
-            XLSX.writeFile(wb, filename);
-              showToast(`Excel file exported successfully: ${filename}`, 'success');
+            XLSX.writeFile(wb, filename);              showToast(`Excel file exported successfully: ${filename}`, 'success');
         }
+
+        // Clear all data from database
+        async function clearAllData() {
+            if (confirm('⚠️ WARNING: This will permanently delete ALL candidates and history data from the database.\n\nThis action cannot be undone. Are you sure you want to continue?')) {
+                try {
+                    showToast('Clearing all data...', 'info');
+                    
+                    const response = await fetch('/api/candidates?action=clear', {
+                        method: 'PATCH'
+                    });
+                    
+                    if (response.ok) {
+                        // Clear local array
+                        candidates = [];
+                        
+                        // Update UI
+                        renderTable();
+                        updateDashboard();
+                        
+                        showToast('All data cleared successfully', 'success');
+                    } else {
+                        throw new Error(`Failed to clear data: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('Error clearing data:', error);
+                    showToast('Error clearing data: ' + error.message, 'error');
+                }
+            }
+        }
+        
         
         // History tracking functionality
         function logChange(action, candidateName, details) {
