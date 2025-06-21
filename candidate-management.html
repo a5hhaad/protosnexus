@@ -2285,20 +2285,18 @@
             // Start with empty candidates array
             candidates = [];
             console.log('Initialized with empty data - no sample candidates');
-        }
-
-        // Initialize the application with API data
+        }        // Initialize the application with API data
         async function initializeApplication() {
             console.log('Initializing application...');
             try {
                 await loadCandidatesFromAPI();
                 renderTable();
-                updateDashboard();
+                updateDashboardIfExists();
             } catch (error) {
                 console.error('Failed to initialize with API, using sample data:', error);
                 initializeWithSampleData();
                 renderTable();
-                updateDashboard();
+                updateDashboardIfExists();
             }
         }
 
@@ -3017,7 +3015,7 @@
             console.log('Window loaded');
             if (!document.querySelector('#candidateTable tbody').hasChildNodes()) {
                 renderTable();
-                updateDashboard();
+                updateDashboardIfExists();
                 setupEventListeners();
                 loadTheme();
             }
@@ -3343,14 +3341,7 @@
                     } catch (e) {
                         console.warn('Could not update table:', e.message);
                     }
-                    
-                    try {
-                        if (document.getElementById('statsGrid')) {
-                            updateDashboard();
-                        }
-                    } catch (e) {
-                        console.warn('Could not update dashboard:', e.message);
-                    }
+                      updateDashboardIfExists();
                     
                     closeModal();
                     showToast('New candidate added successfully', 'success');
@@ -3380,7 +3371,7 @@
                     await updateCandidateInAPI(candidate);
                     
                     renderTable();
-                    updateDashboard();
+                    updateDashboardIfExists();
                     closeModal();
                     showToast('Candidate updated successfully', 'success');
                 }
@@ -3694,7 +3685,7 @@
             
             // Re-render the table
             renderTable();
-            updateDashboard();
+            updateDashboardIfExists();
             showToast('Candidate updated successfully', 'success');
         }
 
@@ -3714,7 +3705,7 @@
                     candidates = candidates.filter(c => c.id != candidateId);
                     
                     renderTable();
-                    updateDashboard();
+                    updateDashboardIfExists();
                     showToast('Candidate deleted successfully', 'success');
                 } catch (error) {
                     console.error('Error deleting candidate:', error);
@@ -4045,6 +4036,13 @@
         }
 
         // Update dashboard statistics
+        // Smart dashboard update - only updates if dashboard exists
+        function updateDashboardIfExists() {
+            if (document.getElementById('statsGrid')) {
+                updateDashboardIfExists();
+            }
+        }
+
         function updateDashboard() {
             const stats = {
                 total: candidates.length,                interview: candidates.filter(c => c.status === 'Interview').length,
@@ -4056,10 +4054,9 @@
             };
 
             const statsGrid = document.getElementById('statsGrid');
-            
-            // Safety check to ensure the stats grid element exists
+              // Safety check to ensure the stats grid element exists
             if (!statsGrid) {
-                console.warn('Stats grid element not found, skipping dashboard update');
+                console.log('Dashboard not present on this page, skipping stats update');
                 return;
             }
             
@@ -4156,7 +4153,7 @@
                         
                         // Update UI
                         renderTable();
-                        updateDashboard();
+                        updateDashboardIfExists();
                         
                         showToast('All data cleared successfully', 'success');
                     } else {
