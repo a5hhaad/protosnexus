@@ -1,6 +1,27 @@
-{ 
-  "name": "protosnexus-candidate-management", 
-  "version": "1.0.0", 
-  "dependencies": { "mongodb": "^6.0.0" }, 
-  "engines": { "node": "18.x" } 
-} 
+{
+  "name": "protosnexus-candidate-management",
+  "version": "1.0.0",
+  "description": "Professional candidate management system with MongoDB Atlas integration",
+  "main": "index.html",  "scripts": {
+    "build": "echo 'Build complete - Ready for Netlify'",
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "mongodb": "^6.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  },  "keywords": [
+    "candidate-management",
+    "mongodb",
+    "netlify",
+    "recruitment",
+    "protos-nexus"
+  ],
+  "author": "MD Ashhaad Sadique",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a5hhaad/protosnexus.git"
+  }
+}

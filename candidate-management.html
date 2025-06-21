@@ -2186,13 +2186,11 @@
             // Redirect to login page
             window.location.href = 'login.html';
         }        // Candidate data structure - loaded from API
-        let candidates = [];
-
-        // API Functions for MongoDB integration
+        let candidates = [];        // API Functions for MongoDB integration
         async function loadCandidatesFromAPI() {
             try {
                 console.log('Loading candidates from API...');
-                const response = await fetch('/api/candidates');
+                const response = await fetch('/.netlify/functions/candidates');
                 if (response.ok) {
                     candidates = await response.json();
                     console.log('Candidates loaded:', candidates.length);
@@ -2206,12 +2204,10 @@
                 // Initialize with sample data if API fails
                 initializeWithSampleData();
             }
-        }
-
-        async function saveCandidateToAPI(candidate) {
+        }        async function saveCandidateToAPI(candidate) {
             try {
                 console.log('Saving candidate to API:', candidate);
-                const response = await fetch('/api/candidates', {
+                const response = await fetch('/.netlify/functions/candidates', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2230,12 +2226,10 @@
                 console.error('Error saving candidate:', error);
                 throw error;
             }
-        }
-
-        async function updateCandidateInAPI(candidate) {
+        }        async function updateCandidateInAPI(candidate) {
             try {
                 console.log('Updating candidate in API:', candidate);
-                const response = await fetch('/api/candidates', {
+                const response = await fetch('/.netlify/functions/candidates', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2253,12 +2247,10 @@
                 console.error('Error updating candidate:', error);
                 throw error;
             }
-        }
-
-        async function deleteCandidateFromAPI(candidateId) {
+        }        async function deleteCandidateFromAPI(candidateId) {
             try {
                 console.log('Deleting candidate from API:', candidateId);
-                const response = await fetch(`/api/candidates?id=${candidateId}`, {
+                const response = await fetch(`/.netlify/functions/candidates?id=${candidateId}`, {
                     method: 'DELETE'
                 });
                 
@@ -4139,8 +4131,7 @@
             if (confirm('⚠️ WARNING: This will permanently delete ALL candidates and history data from the database.\n\nThis action cannot be undone. Are you sure you want to continue?')) {
                 try {
                     showToast('Clearing all data...', 'info');
-                    
-                    const response = await fetch('/api/candidates?action=clear', {
+                      const response = await fetch('/.netlify/functions/candidates?action=clear', {
                         method: 'PATCH'
                     });
                     
