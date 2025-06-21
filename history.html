@@ -233,21 +233,13 @@
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
             color: var(--info-color);
             border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .controls {
+        }        .controls {
             margin-bottom: 20px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .filter-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        }        .filter-group {
+            display: none;
         }
 
         .filter-group label {
@@ -272,22 +264,30 @@
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }        .refresh-btn {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }        .refresh-btn:hover {
+            transform: translateY(-2px) rotate(45deg);
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-color);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
         }
 
-        .refresh-btn {
-            background: linear-gradient(135deg, var(--accent-color), #2563eb);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-        }        .refresh-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+        .refresh-btn:active {
+            transform: scale(0.95);
         }
 
         .history-count {
@@ -315,26 +315,9 @@
                 <span id="historyCount" class="history-count" style="display: none;"></span>
             </div>
         </div>
-        
-        <div class="content">
+          <div class="content">
             <div class="controls" id="controls" style="display: none;">
-                <div class="filter-group">
-                    <label for="actionFilter">Action:</label>
-                    <select id="actionFilter">
-                        <option value="">All Actions</option>
-                        <option value="created">Created</option>
-                        <option value="updated">Updated</option>
-                        <option value="deleted">Deleted</option>
-                        <option value="status-changed">Status Changed</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="dateFilter">Date:</label>
-                    <input type="date" id="dateFilter">
-                </div>
-                
-                <button class="refresh-btn" onclick="refreshHistory()">🔄 Refresh</button>
+                <button class="refresh-btn" onclick="refreshHistory()">🔄</button>
             </div>
 
             <div class="empty-state" id="emptyState">
@@ -420,45 +403,20 @@
                     
                     // Clear existing rows
                     tableBody.innerHTML = '';
-                    
-                    // Sort by timestamp (newest first)
+                      // Sort by timestamp (newest first)
                     const sortedHistory = historyData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                     
-                    // Apply filters
-                    const actionFilter = document.getElementById('actionFilter').value;
-                    const dateFilter = document.getElementById('dateFilter').value;
-                    
-                    const filteredHistory = sortedHistory.filter(record => {
-                        if (actionFilter && record.action !== actionFilter) return false;
-                        if (dateFilter && !record.timestamp.startsWith(dateFilter)) return false;
-                        return true;
-                    });
-                    
-                    // Update count to show filtered results
-                    if (filteredHistory.length !== historyData.length) {
-                        historyCount.textContent = `${filteredHistory.length} of ${historyData.length} record${historyData.length === 1 ? '' : 's'}`;
-                    }
-                    
                     // Populate table - updated to match the new data structure
-                    filteredHistory.forEach(record => {
+                    sortedHistory.forEach(record => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td class="timestamp">${formatTimestamp(record.timestamp)}</td>
                             <td><strong>${record.candidate || 'Unknown'}</strong></td>
                             <td><span class="action ${record.action}">${formatAction(record.action)}</span></td>
                             <td colspan="3">${record.details || '-'}</td>
-                            <td>${record.user || 'System'}</td>
-                        `;
+                            <td>${record.user || 'System'}</td>                        `;
                         tableBody.appendChild(row);
                     });
-                    
-                    if (filteredHistory.length === 0) {
-                        emptyState.style.display = 'block';
-                        historyTable.style.display = 'none';
-                        historyCount.textContent = `0 of ${historyData.length} record${historyData.length === 1 ? '' : 's'} match filters`;
-                        document.querySelector('.empty-state h2').textContent = 'No Records Match Filters';
-                        document.querySelector('.empty-state p').textContent = 'Try adjusting your filter criteria to see more results.';
-                    }
                 }
             } catch (error) {
                 console.error('Error loading history:', error);
@@ -470,22 +428,20 @@
                 emptyState.querySelector('h2').textContent = 'Error Loading History';
                 emptyState.querySelector('p').textContent = 'Unable to load change history. Please try refreshing the page.';
             }
-        }
-
-        async function refreshHistory() {
+        }        async function refreshHistory() {
             const refreshBtn = document.querySelector('.refresh-btn');
             const originalText = refreshBtn.innerHTML;
             
             try {
                 // Show loading state
-                refreshBtn.innerHTML = '⏳ Loading...';
+                refreshBtn.innerHTML = '⏳';
                 refreshBtn.disabled = true;
                 
                 // Reload history data
                 await loadHistory();
                 
                 // Show success feedback briefly
-                refreshBtn.innerHTML = '✅ Updated';
+                refreshBtn.innerHTML = '✅';
                 setTimeout(() => {
                     refreshBtn.innerHTML = originalText;
                     refreshBtn.disabled = false;
@@ -495,7 +451,7 @@
                 console.error('Error refreshing history:', error);
                 
                 // Show error feedback
-                refreshBtn.innerHTML = '❌ Error';
+                refreshBtn.innerHTML = '❌';
                 setTimeout(() => {
                     refreshBtn.innerHTML = originalText;
                     refreshBtn.disabled = false;
@@ -527,9 +483,7 @@
                 case 'status-changed': return 'Status Changed';
                 default: return action.charAt(0).toUpperCase() + action.slice(1);
             }
-        }        // Event listeners for filters
-        document.getElementById('actionFilter').addEventListener('change', loadHistory);
-        document.getElementById('dateFilter').addEventListener('change', loadHistory);
+        }        // Event listeners removed since we don't have filters anymore
         
         // Keyboard shortcuts
         document.addEventListener('keydown', function(event) {
@@ -539,13 +493,6 @@
                     event.preventDefault();
                     refreshHistory();
                 }
-            }
-            
-            // Escape key to clear filters
-            if (event.key === 'Escape') {
-                document.getElementById('actionFilter').value = '';
-                document.getElementById('dateFilter').value = '';
-                loadHistory();
             }
         });
     </script>
