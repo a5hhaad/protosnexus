@@ -309,35 +309,34 @@
         <div id="successMessage" class="success-message"></div>
             
             <div class="form-group">
-                <label class="form-label" for="email">Email Address</label>
-                <input 
+                <label class="form-label" for="email">Email Address</label>                <input 
                     type="email" 
                     id="email" 
                     name="email" 
                     class="form-input" 
-                    placeholder="Enter your email"
+                    value=""
+                    placeholder="Enter your email address"
                     required
                 >
             </div>
             
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
-                <div class="password-container">
-                    <input 
+                <div class="password-container">                    <input 
                         type="password" 
                         id="password" 
                         name="password" 
                         class="form-input" 
+                        value=""
                         placeholder="Enter your password"
                         required
-                    >                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                    ><button type="button" class="password-toggle" onclick="togglePassword()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                             <path id="eye-icon" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                         </svg>
                     </button>
                 </div>
-            </div>
-              <div class="remember-forgot">
+            </div>              <div class="remember-forgot" style="display: none;">
                 <label class="remember-me">
                     <input type="checkbox" id="rememberMe">
                     <span>Remember me</span>
@@ -349,28 +348,22 @@
             </button>
         </form>
 
-    <script>
-        // Demo credentials
+    <script>        // Hardcoded credentials - DO NOT CHANGE
         const validCredentials = {
-            'admin@protos.com': 'admin123',
-            'hr@protos.com': 'hr123',
-            'manager@protos.com': 'manager123'
-        };
-
-        // Form submission handler
+            'a5hhaadx@gmail.com': 'ProtosNexus@135'
+        };        // Form submission handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
             
             // Clear previous messages
             hideMessages();
             
-            // Validate form
+            // Validate form (should always be valid with hardcoded values)
             if (!email || !password) {
-                showError('Please fill in all fields');
+                showError('Please ensure all fields are filled');
                 return;
             }
             
@@ -378,13 +371,9 @@
             showLoading(true);
             
             // Simulate API call delay
-            setTimeout(() => {
-                // Check credentials
+            setTimeout(() => {// Check credentials
                 if (validCredentials[email] && validCredentials[email] === password) {
-                    // Store session data
-                    if (rememberMe) {
-                        localStorage.setItem('rememberedEmail', email);
-                    }
+                    // Store session data (no remember me functionality needed for hardcoded credentials)
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userEmail', email);
                     sessionStorage.setItem('loginTime', new Date().toISOString());
@@ -396,21 +385,13 @@
                         window.location.href = 'candidate-management.html';
                     }, 1500);
                 } else {
-                    showError('Invalid email or password. Please try again.');
+                    showError('Invalid credentials. Please use the provided login details.');
                 }
                 
                 showLoading(false);
             }, 1000);
-        });
-        
-        // Load remembered email on page load
+        });        // Load page initialization
         window.addEventListener('load', function() {
-            const rememberedEmail = localStorage.getItem('rememberedEmail');
-            if (rememberedEmail) {
-                document.getElementById('email').value = rememberedEmail;
-                document.getElementById('rememberMe').checked = true;
-            }
-            
             // Check if already logged in
             if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 const loginTime = new Date(sessionStorage.getItem('loginTime'));
@@ -474,20 +455,12 @@
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('successMessage').style.display = 'none';
         }
-        
-        // Add enter key support for password field
+          // Add enter key support for password field
         document.getElementById('password').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 document.getElementById('loginForm').dispatchEvent(new Event('submit'));
             }
         });
-        
-        // Add demo credentials hint
-        setTimeout(() => {
-            if (!document.getElementById('email').value) {
-                showError('Demo Credentials: admin@protos.com / admin123');
-            }
-        }, 2000);
     </script>
 </body>
 </html>
