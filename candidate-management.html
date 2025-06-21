@@ -2184,27 +2184,43 @@
             localStorage.clear();
             
             // Redirect to login page
-            window.location.href = 'login.html';
-        }        // Candidate data structure - loaded from API
-        let candidates = [];        // API Functions for Neon PostgreSQL integration
+            window.location.href = 'login.html';        }
+
+        // Candidate data structure - loaded from API
+        let candidates = [];
+
+        // API Functions for Neon PostgreSQL integration
         async function loadCandidatesFromAPI() {
             try {
                 console.log('Loading candidates from API...');
                 const response = await fetch('/.netlify/functions/candidates');
                 if (response.ok) {
-                    candidates = await response.json();
+                    const rawCandidates = await response.json();
+                    // Ensure all candidates have required properties
+                    candidates = rawCandidates.map(candidate => ({
+                        ...candidate,
+                        blockers: candidate.blockers || [],
+                        skills: candidate.skills || '',
+                        experience: candidate.experience || '',
+                        phone: candidate.phone || '',
+                        document: candidate.document || '',
+                        company: candidate.company || '',
+                        position: candidate.position || '',
+                        status: candidate.status || 'pending'
+                    }));
                     console.log('Candidates loaded:', candidates.length);
                 } else {
                     console.error('Failed to load candidates:', response.status);
                     // Initialize with sample data if API fails
-                    initializeWithSampleData();
-                }
+                    initializeWithSampleData();                }
             } catch (error) {
                 console.error('Error loading candidates:', error);
                 // Initialize with sample data if API fails
                 initializeWithSampleData();
             }
-        }        async function saveCandidateToAPI(candidate) {
+        }
+
+        async function saveCandidateToAPI(candidate) {
             try {
                 console.log('Saving candidate to API:', candidate);
                 const response = await fetch('/.netlify/functions/candidates', {
@@ -4031,13 +4047,12 @@
         // Update dashboard statistics
         function updateDashboard() {
             const stats = {
-                total: candidates.length,
-                interview: candidates.filter(c => c.status === 'Interview').length,
+                total: candidates.length,                interview: candidates.filter(c => c.status === 'Interview').length,
                 scheduling: candidates.filter(c => c.status === 'Scheduling').length,
                 training: candidates.filter(c => c.status === 'Training').length,
                 working: candidates.filter(c => c.status === 'Working').length,
                 idle: candidates.filter(c => c.status === 'Idle').length,
-                blockers: candidates.filter(c => c.blockers.length > 0).length
+                blockers: candidates.filter(c => c.blockers && Array.isArray(c.blockers) && c.blockers.length > 0).length
             };
 
             const statsGrid = document.getElementById('statsGrid');
