@@ -4083,12 +4083,10 @@
                 {wch: 25}, // Email
                 {wch: 15}  // Phone
             ];
-            ws['!cols'] = colWidths;
-
-            // Generate filename with current date
+            ws['!cols'] = colWidths;            // Generate filename with current date
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
-            const filename = `Protos_Nexus_Candidates_${dateStr}.xlsx`;
+            const filename = `ProtosNexus_${dateStr}.xlsx`;
 
             // Download the Excel file
             XLSX.writeFile(wb, filename);
