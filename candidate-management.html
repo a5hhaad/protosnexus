@@ -3091,12 +3091,11 @@
                     }
                 </td><td>
                     ${['idle', 'training', 'scheduling', 'working'].includes(candidate.status.toLowerCase()) ? 'N/A' : formatDateTime(candidate.interview)}
+                </td>                <td>
+                    ${candidate.status.toLowerCase() === 'working' ? (candidate.company || 'N/A') : 'N/A'}
                 </td>
                 <td>
-                    ${candidate.status.toLowerCase() === 'working' ? candidate.company : 'N/A'}
-                </td>
-                <td>
-                    ${candidate.status.toLowerCase() === 'working' ? candidate.project : 'N/A'}
+                    ${candidate.status.toLowerCase() === 'working' ? (candidate.project || 'N/A') : 'N/A'}
                 </td>
                 <td>${candidate.status.toLowerCase() === 'working' ? formatDate(candidate.date) : 'N/A'}</td><td>
                     <div class="blockers">
@@ -3107,8 +3106,8 @@
                     </div>
                 </td>
                 <td>
-                    ${candidate.remarks}
-                </td>                <td>                    <div class="contact-icons">                        <a href="mailto:${candidate.email}" class="contact-icon email" title="Send Email" tabindex="0">
+                    ${candidate.remarks || 'N/A'}
+                </td><td>                    <div class="contact-icons">                        <a href="mailto:${candidate.email}" class="contact-icon email" title="Send Email" tabindex="0">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                             </svg>
@@ -3422,21 +3421,17 @@
                 cells[2].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
-            }
-
-            // Interview (index 3) - editable when Interview, L2, L3, but NOT when Working
+            }            // Interview (index 3) - editable when Interview, L2, L3, but NOT when Working
             if (['Interview', 'L2', 'L3'].includes(candidate.status)) {
-                cells[3].innerHTML = `<input type="datetime-local" class="edit-input date-input" value="${candidate.interview}" data-field="interview" style="width: 100%;">`;
+                cells[3].innerHTML = `<input type="datetime-local" class="edit-input date-input" value="${candidate.interview || ''}" data-field="interview" style="width: 100%;">`;
             } else {
                 // Show N/A for Idle, Training, Scheduling, and Working
                 cells[3].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
-            }
-
-            // Company (index 4) - only editable when Working
+            }            // Company (index 4) - only editable when Working
             if (candidate.status === 'Working') {
-                cells[4].innerHTML = `<input type="text" class="edit-input" value="${candidate.company}" data-field="company">`;
+                cells[4].innerHTML = `<input type="text" class="edit-input" value="${candidate.company || ''}" data-field="company">`;
             } else {
                 // Show N/A for all other statuses
                 cells[4].innerHTML = `
@@ -3446,17 +3441,15 @@
 
             // Project (index 5) - only editable when Working
             if (candidate.status === 'Working') {
-                cells[5].innerHTML = `<input type="text" class="edit-input" value="${candidate.project}" data-field="project">`;
+                cells[5].innerHTML = `<input type="text" class="edit-input" value="${candidate.project || ''}" data-field="project">`;
             } else {
                 // Show N/A for all other statuses
                 cells[5].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
-            }
-
-            // Date (index 6) - only editable when Working
+            }            // Date (index 6) - only editable when Working
             if (candidate.status === 'Working') {
-                cells[6].innerHTML = `<input type="date" class="edit-input date-input" value="${candidate.date}" data-field="date" style="width: 100%;">`;
+                cells[6].innerHTML = `<input type="date" class="edit-input date-input" value="${candidate.date || ''}" data-field="date" style="width: 100%;">`;
             } else {
                 // Show N/A for all other statuses
                 cells[6].innerHTML = `
@@ -3582,11 +3575,26 @@
                     break;
                 case 'Training':
                     // No additional required fields for Training status
-                    break;
-                case 'Working':
-                    // Only validate company when Working (since it's editable)
-                    if (!newData.company) {
-                        showToast('Please fill in the company name', 'error');
+                    break;                case 'Working':
+                    // Validate all required fields for Working status
+                    if (!newData.company && !candidate.company) {
+                        showToast('Company name is required for Working status', 'error');
+                        return;
+                    }
+                    if (!newData.project && !candidate.project) {
+                        showToast('Project name is required for Working status', 'error');
+                        return;
+                    }
+                    // Use new value if provided, otherwise keep existing value
+                    const currentCompany = newData.company || candidate.company;
+                    const currentProject = newData.project || candidate.project;
+                    
+                    if (!currentCompany || currentCompany.trim() === '') {
+                        showToast('Company name is required for Working status', 'error');
+                        return;
+                    }
+                    if (!currentProject || currentProject.trim() === '') {
+                        showToast('Project name is required for Working status', 'error');
                         return;
                     }
                     break;
@@ -3768,10 +3776,25 @@
             }
             
             showToast(`File selected: ${file.name} (${formatFileSize(file.size)})`, 'success');
-        }
-          function handleStatusChangeInEdit(candidateId, newStatus) {
+        }          function handleStatusChangeInEdit(candidateId, newStatus) {
             const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (!candidate) return;
+
+            // If changing to Working status, validate that required fields will be filled
+            if (newStatus === 'Working') {
+                const currentCompany = candidate.company || '';
+                const currentProject = candidate.project || '';
+                
+                if (!currentCompany.trim() || !currentProject.trim()) {
+                    showToast('Company and Project fields are required for Working status. Please ensure these fields are filled before changing status to Working.', 'error');
+                    // Revert the dropdown selection
+                    const statusSelect = document.querySelector(`tr[data-candidate-id="${candidateId}"] select[data-field="status"]`);
+                    if (statusSelect) {
+                        statusSelect.value = candidate.status;
+                    }
+                    return;
+                }
+            }
 
             // Temporarily update candidate status for field display logic
             const originalStatus = candidate.status;
@@ -3835,10 +3858,9 @@
                 cells[2].innerHTML = `                    <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
             }
-            
-            // Interview (index 3) - editable when Interview, L2, L3, but NOT when Working
+              // Interview (index 3) - editable when Interview, L2, L3, but NOT when Working
             if (['Interview', 'L2', 'L3'].includes(newStatus)) {
-                cells[3].innerHTML = `<input type="datetime-local" class="edit-input date-input" value="${candidate.interview}" data-field="interview" style="width: 100%;">`;
+                cells[3].innerHTML = `<input type="datetime-local" class="edit-input date-input" value="${candidate.interview || ''}" data-field="interview" style="width: 100%;">`;
             } else {
                 cells[3].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
@@ -3847,7 +3869,7 @@
 
             // Company (index 4) - only editable when Working
             if (newStatus === 'Working') {
-                cells[4].innerHTML = `<input type="text" class="edit-input" value="${candidate.company}" data-field="company">`;
+                cells[4].innerHTML = `<input type="text" class="edit-input" value="${candidate.company || ''}" data-field="company">`;
             } else {
                 cells[4].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
@@ -3856,7 +3878,7 @@
 
             // Project (index 5) - only editable when Working
             if (newStatus === 'Working') {
-                cells[5].innerHTML = `<input type="text" class="edit-input" value="${candidate.project}" data-field="project">`;
+                cells[5].innerHTML = `<input type="text" class="edit-input" value="${candidate.project || ''}" data-field="project">`;
             } else {
                 cells[5].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
@@ -3865,7 +3887,7 @@
 
             // Date (index 6) - only editable when Working
             if (newStatus === 'Working') {
-                cells[6].innerHTML = `<input type="date" class="edit-input date-input" value="${candidate.date}" data-field="date" style="width: 100%;">`;            } else {
+                cells[6].innerHTML = `<input type="date" class="edit-input date-input" value="${candidate.date || ''}" data-field="date" style="width: 100%;">`;} else {
                 cells[6].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
