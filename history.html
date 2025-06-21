@@ -285,11 +285,21 @@
             font-weight: 600;
             transition: var(--transition);
             box-shadow: var(--shadow);
-        }
-
-        .refresh-btn:hover {
+        }        .refresh-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .history-count {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+            color: var(--info-color);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -299,10 +309,10 @@
     <div class="container">        <div class="header">
             <button class="back-button" onclick="goBack()">
                 ←
-            </button>
-            <div class="header-content">
+            </button>            <div class="header-content">
                 <h1>📋 Candidate Change History</h1>
                 <p>Track all changes and updates to candidate records</p>
+                <span id="historyCount" class="history-count" style="display: none;"></span>
             </div>
         </div>
         
@@ -324,7 +334,7 @@
                     <input type="date" id="dateFilter">
                 </div>
                 
-                <button class="refresh-btn" onclick="loadHistory().catch(console.error)">🔄 Refresh</button>
+                <button class="refresh-btn" onclick="refreshHistory()">🔄 Refresh</button>
             </div>
 
             <div class="empty-state" id="emptyState">
@@ -383,29 +393,30 @@
         // Load history data on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadHistory().catch(console.error);
-        });
-
-        async function loadHistory() {
+        });        async function loadHistory() {
             try {
                 // Get history data from API
                 const response = await fetch('/api/history');
                 const historyData = response.ok ? await response.json() : [];
-                
-                const emptyState = document.getElementById('emptyState');
+                  const emptyState = document.getElementById('emptyState');
                 const historyTable = document.getElementById('historyTable');
                 const controls = document.getElementById('controls');
                 const tableBody = document.getElementById('historyTableBody');
+                const historyCount = document.getElementById('historyCount');
                 
                 if (historyData.length === 0) {
                     // Show empty state
                     emptyState.style.display = 'block';
                     historyTable.style.display = 'none';
                     controls.style.display = 'none';
+                    historyCount.style.display = 'none';
                 } else {
                     // Show table with data
                     emptyState.style.display = 'none';
                     historyTable.style.display = 'table';
                     controls.style.display = 'flex';
+                    historyCount.style.display = 'inline-block';
+                    historyCount.textContent = `${historyData.length} record${historyData.length === 1 ? '' : 's'}`;
                     
                     // Clear existing rows
                     tableBody.innerHTML = '';
@@ -423,6 +434,11 @@
                         return true;
                     });
                     
+                    // Update count to show filtered results
+                    if (filteredHistory.length !== historyData.length) {
+                        historyCount.textContent = `${filteredHistory.length} of ${historyData.length} record${historyData.length === 1 ? '' : 's'}`;
+                    }
+                    
                     // Populate table - updated to match the new data structure
                     filteredHistory.forEach(record => {
                         const row = document.createElement('tr');
@@ -439,6 +455,7 @@
                     if (filteredHistory.length === 0) {
                         emptyState.style.display = 'block';
                         historyTable.style.display = 'none';
+                        historyCount.textContent = `0 of ${historyData.length} record${historyData.length === 1 ? '' : 's'} match filters`;
                         document.querySelector('.empty-state h2').textContent = 'No Records Match Filters';
                         document.querySelector('.empty-state p').textContent = 'Try adjusting your filter criteria to see more results.';
                     }
@@ -447,6 +464,42 @@
                 console.error('Error loading history:', error);
                 document.getElementById('emptyState').style.display = 'block';
                 document.getElementById('historyTable').style.display = 'none';
+                
+                // Show error message in empty state
+                const emptyState = document.getElementById('emptyState');
+                emptyState.querySelector('h2').textContent = 'Error Loading History';
+                emptyState.querySelector('p').textContent = 'Unable to load change history. Please try refreshing the page.';
+            }
+        }
+
+        async function refreshHistory() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            const originalText = refreshBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                refreshBtn.innerHTML = '⏳ Loading...';
+                refreshBtn.disabled = true;
+                
+                // Reload history data
+                await loadHistory();
+                
+                // Show success feedback briefly
+                refreshBtn.innerHTML = '✅ Updated';
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalText;
+                    refreshBtn.disabled = false;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error refreshing history:', error);
+                
+                // Show error feedback
+                refreshBtn.innerHTML = '❌ Error';
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalText;
+                    refreshBtn.disabled = false;
+                }, 2000);
             }
         }
 
@@ -474,11 +527,27 @@
                 case 'status-changed': return 'Status Changed';
                 default: return action.charAt(0).toUpperCase() + action.slice(1);
             }
-        }
-
-        // Event listeners for filters
+        }        // Event listeners for filters
         document.getElementById('actionFilter').addEventListener('change', loadHistory);
         document.getElementById('dateFilter').addEventListener('change', loadHistory);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // R key to refresh (when not typing in input fields)
+            if (event.key === 'r' || event.key === 'R') {
+                if (!event.target.matches('input, select, textarea')) {
+                    event.preventDefault();
+                    refreshHistory();
+                }
+            }
+            
+            // Escape key to clear filters
+            if (event.key === 'Escape') {
+                document.getElementById('actionFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                loadHistory();
+            }
+        });
     </script>
 </body>
 </html>

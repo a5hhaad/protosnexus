@@ -142,13 +142,12 @@ exports.handler = async (event, context) => {
           newCandidate.status || 'pending'
         ]);
         
-        console.log('✅ Candidate created successfully');
-        
-        // Log to history
+        console.log('✅ Candidate created successfully');        // Log to history with detailed information
+        const newCandidateDetails = `${newCandidate.name} (${newCandidate.position || 'No position specified'}) - ${newCandidate.email || 'No email'}`;
         await client.query(`
           INSERT INTO history (action, candidate, details)
           VALUES ($1, $2, $3)
-        `, ['created', newCandidate.name, `Created new candidate: ${newCandidate.name}`]);
+        `, ['created', newCandidate.name, `Created new candidate: ${newCandidateDetails}`]);
         
         // Prepare response data
         const responseData = {
@@ -173,6 +172,24 @@ exports.handler = async (event, context) => {
         
         console.log('📝 Updating candidate ID:', id);
         
+        // Get current candidate data to compare changes
+        const currentResult = await client.query('SELECT * FROM candidates WHERE candidate_id = $1', [id]);
+        const currentData = currentResult.rows[0];
+        
+        if (!currentData) {
+          throw new Error('Candidate not found');
+        }
+        
+        // Track what fields changed
+        const changes = [];
+        if (currentData.name !== updateData.name) changes.push(`Name: "${currentData.name}" → "${updateData.name}"`);
+        if (currentData.email !== updateData.email) changes.push(`Email: "${currentData.email || 'None'}" → "${updateData.email || 'None'}"`);
+        if (currentData.phone !== updateData.phone) changes.push(`Phone: "${currentData.phone || 'None'}" → "${updateData.phone || 'None'}"`);
+        if (currentData.position !== updateData.position) changes.push(`Position: "${currentData.position || 'None'}" → "${updateData.position || 'None'}"`);
+        if (currentData.experience !== updateData.experience) changes.push(`Experience: "${currentData.experience || 'None'}" → "${updateData.experience || 'None'}"`);
+        if (currentData.skills !== updateData.skills) changes.push(`Skills: "${currentData.skills || 'None'}" → "${updateData.skills || 'None'}"`);
+        if (currentData.status !== updateData.status) changes.push(`Status: "${currentData.status}" → "${updateData.status}"`);
+        
         // Update candidate
         await client.query(`
           UPDATE candidates 
@@ -192,11 +209,12 @@ exports.handler = async (event, context) => {
         
         console.log('✅ Candidate updated successfully');
         
-        // Log to history
+        // Log to history with detailed changes
+        const changeDetails = changes.length > 0 ? changes.join('; ') : 'No changes detected';
         await client.query(`
           INSERT INTO history (action, candidate, details)
           VALUES ($1, $2, $3)
-        `, ['updated', updateData.name, `Updated candidate: ${updateData.name}`]);
+        `, ['updated', updateData.name, changeDetails]);
         
         return {
           statusCode: 200,
@@ -210,21 +228,25 @@ exports.handler = async (event, context) => {
         }
         
         console.log('🗑️ Deleting candidate ID:', deleteId);
+          // Get candidate details before deleting for better history logging
+        const candidateResult = await client.query('SELECT * FROM candidates WHERE candidate_id = $1', [deleteId]);
+        const candidateData = candidateResult.rows[0];
         
-        // Get candidate name before deleting
-        const candidateResult = await client.query('SELECT name FROM candidates WHERE candidate_id = $1', [deleteId]);
-        const candidateName = candidateResult.rows[0]?.name || 'Unknown';
+        if (!candidateData) {
+          throw new Error('Candidate not found');
+        }
+          const deletedCandidateDetails = `${candidateData.name} (${candidateData.position || 'No position'}) - ${candidateData.email || 'No email'}`;
         
         // Delete candidate
         await client.query('DELETE FROM candidates WHERE candidate_id = $1', [deleteId]);
         
         console.log('✅ Candidate deleted successfully');
         
-        // Log to history
+        // Log to history with detailed information
         await client.query(`
           INSERT INTO history (action, candidate, details)
           VALUES ($1, $2, $3)
-        `, ['deleted', candidateName, `Deleted candidate: ${candidateName}`]);
+        `, ['deleted', candidateData.name, `Deleted candidate: ${deletedCandidateDetails}`]);
         
         return {
           statusCode: 200,
