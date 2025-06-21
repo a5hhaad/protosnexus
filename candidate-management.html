@@ -2299,17 +2299,34 @@
         function initializeWithSampleData() {
             // Start with empty candidates array
             candidates = [];
-            console.log('Initialized with empty data - no sample candidates');
-        }        // Initialize the application with API data
+            console.log('Initialized with empty data - no sample candidates');        }        // Normalize remarks to match status for all candidates
+        function normalizeRemarksForAllCandidates() {
+            candidates.forEach(candidate => {
+                if (candidate.status && candidate.status.trim() !== '') {
+                    // Update remarks to match the current status
+                    candidate.remarks = getRemarksByStatus(candidate.status);
+                } else if (!candidate.remarks || candidate.remarks.trim() === '') {
+                    // If no status and no remarks, set empty
+                    candidate.remarks = '';
+                }
+            });
+            console.log('Normalized remarks for all candidates based on their status');
+        }
+
+        // Initialize the application with API data
         async function initializeApplication() {
             console.log('Initializing application...');
             try {
                 await loadCandidatesFromAPI();
+                // Normalize remarks to ensure consistency
+                normalizeRemarksForAllCandidates();
                 renderTable();
                 updateDashboardIfExists();
             } catch (error) {
                 console.error('Failed to initialize with API, using sample data:', error);
                 initializeWithSampleData();
+                // Normalize remarks even for sample data
+                normalizeRemarksForAllCandidates();
                 renderTable();
                 updateDashboardIfExists();
             }
@@ -2473,13 +2490,12 @@
                 candidate.interview = interviewDateTime;
                 candidate.interviewType = type; // Store interview type separately
                 candidate.company = company; // Update company name
-                
-                // Update status based on interview type
+                  // Update status based on interview type
                 if (type !== 'Rescheduling' && candidate.status !== 'Working') {
                     candidate.status = 'Interview';
                 }
-                  // Update remarks based on status instead of interview details
-                candidate.status = getRemarksByStatus(candidate.status);
+                  // Update remarks based on status
+                candidate.remarks = getRemarksByStatus(candidate.status);
                 
                 // Refresh the table and calendar
                 renderTable();
@@ -3611,6 +3627,12 @@
                     case 'Scheduling':
                         candidate.remarks = 'Scheduling Interview';
                         break;
+                    case 'L2':
+                        candidate.remarks = 'L2 Interview Scheduled';
+                        break;
+                    case 'L3':
+                        candidate.remarks = 'L3 Interview Scheduled';
+                        break;
                     case 'Training':
                         candidate.remarks = 'Pending Schedule';
                         break;
@@ -3619,6 +3641,10 @@
                         break;
                     case 'Idle':
                         candidate.remarks = 'Currently Idle';
+                        break;
+                    default:
+                        // For any new status, use the helper function
+                        candidate.remarks = getRemarksByStatus(newData.status);
                         break;
                 }
             }
@@ -3924,14 +3950,16 @@
                         }
                     </div>
                 `;
-            }
-
-            // Remarks (index 8) - always read-only, auto-updated
+            }            // Remarks (index 8) - always read-only, auto-updated
             cells[8].innerHTML = `
                 <span style="color: white; font-size: 0.8rem;">${newRemarks}</span>
             `;
             
-            // Restore original status (this is just for display, actual save will update it)            candidate.status = originalStatus;
+            // Update the candidate object with new remarks immediately (for display consistency)
+            candidate.remarks = newRemarks;
+            
+            // Restore original status for now (actual save will update it properly)
+            candidate.status = originalStatus;
         }
 
         // Document upload functionality (now integrated with row editing)
