@@ -2267,7 +2267,9 @@
                 console.error('Error saving candidate:', error);
                 throw error;
             }
-        }        async function updateCandidateInAPI(candidate) {
+        }
+        
+        async function updateCandidateInAPI(candidate) {
             try {
                 console.log('Updating candidate in API:', candidate);
                 const response = await fetch('/.netlify/functions/candidates', {
@@ -2288,7 +2290,9 @@
                 console.error('Error updating candidate:', error);
                 throw error;
             }
-        }        async function deleteCandidateFromAPI(candidateId) {
+        }
+        
+        async function deleteCandidateFromAPI(candidateId) {
             try {
                 console.log('Deleting candidate from API:', candidateId);
                 const response = await fetch(`/.netlify/functions/candidates?id=${candidateId}`, {
@@ -2369,7 +2373,7 @@
                     document.getElementById('candidateForm').dataset.candidateId = 'new';                } else {
                     console.log('Editing existing candidate:', candidateId);
                     // Existing candidate - populate with current data
-                    const candidate = candidates.find(c => c.id === candidateId);
+                    const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
                     if (!candidate) return;
                     
                     // For existing candidates, show all status options
@@ -2451,10 +2455,9 @@
                 });
             
             // Add event listener to auto-populate company name
-            candidateSelect.addEventListener('change', function() {
-                const selectedCandidateId = parseInt(this.value);
+            candidateSelect.addEventListener('change', function() {                const selectedCandidateId = parseInt(this.value);
                 if (selectedCandidateId) {
-                    const selectedCandidate = candidates.find(c => c.id === selectedCandidateId);
+                    const selectedCandidate = candidates.find(c => c.id == selectedCandidateId); // Use loose comparison
                     if (selectedCandidate && selectedCandidate.company) {
                         companyInput.value = selectedCandidate.company;
                     } else {
@@ -2504,9 +2507,8 @@
             const company = document.getElementById('scheduleCompany').value;
             const date = document.getElementById('scheduleDate').value;
             const time = document.getElementById('scheduleTime').value;
-            const type = document.getElementById('scheduleType').value;
-              // Find the candidate and update their interview date
-            const candidate = candidates.find(c => c.id === candidateId);
+            const type = document.getElementById('scheduleType').value;              // Find the candidate and update their interview date
+            const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (candidate) {
                 const interviewDateTime = `${date}T${time}`;
                 candidate.interview = interviewDateTime;
@@ -3334,15 +3336,16 @@
                     logChange('Added', savedCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${document.getElementById('modalPhone').value}`);
                     
                     console.log('Candidates array after API save:', candidates.length);
-                    
-                    // Update UI components
+                      // Update UI components
                     try {
                         if (document.getElementById('candidateTableBody')) {
                             renderTable();
                         }
                     } catch (e) {
                         console.warn('Could not update table:', e.message);
-                    }                    updateDashboardIfExists();
+                    }
+                    
+                    updateDashboardIfExists();
                     
                     closeModal();
                     showToast('New candidate added successfully', 'success');
@@ -3423,15 +3426,13 @@
                 'Contract negotiation': 'Contract'
             };
             return shortForms[blocker] || blocker;
-        }
-
-        function editRow(candidateId) {
+        }        function editRow(candidateId) {
             // Cancel any existing edits
             if (currentEditingRow) {
                 cancelRowEdit();
             }
 
-            const candidate = candidates.find(c => c.id === candidateId);
+            const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (!candidate) return;
 
             const row = document.querySelector(`tr[data-candidate-id="${candidateId}"]`);
@@ -3590,14 +3591,12 @@
                 firstInput.focus();
                 firstInput.select();
             }
-        }
-
-        function saveRowEdit(candidateId) {
-            const candidate = candidates.find(c => c.id === candidateId);
+        }        function saveRowEdit(candidateId) {
+            const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (!candidate) return;
 
             const row = document.querySelector(`tr[data-candidate-id="${candidateId}"]`);
-            if (!row) return;            // Collect all the edited values
+            if (!row) return;// Collect all the edited values
             const inputs = row.querySelectorAll('.edit-input');
             const newData = {};            inputs.forEach(input => {
                 const field = input.dataset.field;
@@ -3756,24 +3755,22 @@
             const baseUrl = window.location.origin + window.location.pathname;
             const uniqueId = `${candidateId}_${timestamp}_${random}`;
             const permanentLink = `${baseUrl}?candidate=${uniqueId}&token=${token}&access=${btoa(email).replace(/[^a-zA-Z0-9]/g, '')}`;
-            
-            return permanentLink;        }
+              return permanentLink;        }
 
         // Share candidate link for individual access
         function shareCandidateLink(candidateId) {
-            const candidate = candidates.find(c => c.id === candidateId);
-            if (!candidate) return;
-            
-            // Use the stored permanent link, or generate one if it doesn't exist (for existing data)
-            let shareableLink = candidate.uniqueLink;
+            const targetCandidate = candidates.find(c => c.id == candidateId); // Use loose comparison
+            if (!targetCandidate) return;
+              // Use the stored permanent link, or generate one if it doesn't exist (for existing data)
+            let shareableLink = targetCandidate.uniqueLink;
             if (!shareableLink) {
-                shareableLink = generatePermanentLink(candidateId, candidate.email);
-                candidate.uniqueLink = shareableLink; // Store it for future use
+                shareableLink = generatePermanentLink(candidateId, targetCandidate.email);
+                targetCandidate.uniqueLink = shareableLink; // Store it for future use
             }
             
             // Copy to clipboard
             navigator.clipboard.writeText(shareableLink).then(() => {
-                showToast(`Permanent link copied for ${candidate.name}!`, 'success');
+                showToast(`Permanent link copied for ${targetCandidate.name}!`, 'success');
             }).catch(() => {
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
@@ -3782,7 +3779,7 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                showToast(`Permanent link copied for ${candidate.name}!`, 'success');
+                showToast(`Permanent link copied for ${targetCandidate.name}!`, 'success');
             });
         }
 
@@ -3830,9 +3827,8 @@
             
             showToast(`File selected: ${file.name} (${formatFileSize(file.size)})`, 'success');
         }
-        
-        function handleStatusChangeInEdit(candidateId, newStatus) {
-            const candidate = candidates.find(c => c.id === candidateId);
+          function handleStatusChangeInEdit(candidateId, newStatus) {
+            const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (!candidate) return;
 
             // Temporarily update candidate status for field display logic
@@ -3971,15 +3967,14 @@
                 <span style="color: white; font-size: 0.8rem;">${newRemarks}</span>
             `;
             
-            // Restore original status (this is just for display, actual save will update it)
-            candidate.status = originalStatus;
+            // Restore original status (this is just for display, actual save will update it)            candidate.status = originalStatus;
         }
 
         // Document upload functionality (now integrated with row editing)
         function uploadDocument(candidateId) {
             currentUploadCandidateId = candidateId;
-            const candidate = candidates.find(c => c.id === candidateId);
-            document.querySelector('#uploadModal .modal-title').textContent = `Upload Document for ${candidate.name}`;
+            const uploadCandidate = candidates.find(c => c.id == candidateId); // Use loose comparison
+            document.querySelector('#uploadModal .modal-title').textContent = `Upload Document for ${uploadCandidate.name}`;
             document.getElementById('uploadModal').style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
@@ -4042,7 +4037,7 @@
                 return;
             }
 
-            const candidate = candidates.find(c => c.id === currentUploadCandidateId);
+            const candidate = candidates.find(c => c.id == currentUploadCandidateId); // Use loose comparison
             if (!candidate) {
                 showToast('Candidate not found', 'error');
                 return;
@@ -4216,12 +4211,17 @@
         function generateHistoryPageHTML() {
             const history = JSON.parse(localStorage.getItem('candidateHistory') || '[]');
             
-            return 
+            return `
+                <html>
+                <head><title>Candidate History</title></head>
+                <body><h1>Candidate History</h1><ul>
+                ${history.map(entry => `<li>${entry.timestamp}: ${entry.action} - ${entry.candidate} - ${entry.details}</li>`).join('')}                </ul></body></html>
+            `;
         }
-    
     </script>
 
-    <script>        // Keyboard navigation
+    <script>
+        // Keyboard navigation
         function handleKeyboard(e) {
             if (e.key === 'Escape') {
                 if (currentEditingRow) {
