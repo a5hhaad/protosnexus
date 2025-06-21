@@ -2610,10 +2610,9 @@
             const now = new Date();
             const timeElement = document.getElementById('currentTime');
             
-            if (timeElement) {
-                // Update time display
+            if (timeElement) {                // Update time display
                 const timeString = now.toLocaleTimeString('en-US', { 
-                    hour12: false,
+                    hour12: true,
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit'
