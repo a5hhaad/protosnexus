@@ -122,11 +122,33 @@
         @keyframes rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .header-content {
+        }        .header-content {
             position: relative;
             z-index: 1;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            z-index: 2;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .logout-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
         }
 
         .header h1 {
@@ -1896,8 +1918,8 @@
 </head>
 <body>
     <div class="animated-bg"></div>
-    
-    <div class="header">
+      <div class="header">
+        <button class="logout-button" onclick="logout()">Logout</button>
         <div class="header-content">
             <h1>Protos Nexus</h1>
             <p>Professional recruitment and candidate tracking platform</p>
@@ -2136,9 +2158,35 @@
                     </button>
                 </div>
             </form>        </div>
-    </div>
-    
+    </div>    
     <script>
+        // Check authentication on page load
+        function checkAuthentication() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userEmail = sessionStorage.getItem('userEmail');
+            
+            if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
+                // Redirect to login if not authenticated
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }        // Check authentication immediately
+        if (!checkAuthentication()) {
+            // Stop script execution if not authenticated
+            throw new Error('Authentication required');
+        }
+
+        // Logout function
+        function logout() {
+            // Clear all session data
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        }
+
         // Candidate data structure - starts empty
         let candidates = [];
 
@@ -3246,9 +3294,8 @@
                     console.log('New candidate object:', newCandidate);
                     
                     candidates.push(newCandidate);
-                
-                // Log the addition to history
-                logChange('Added', newCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${phone}`);
+                  // Log the addition to history
+                logChange('Added', newCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${document.getElementById('modalPhone').value}`);
                 
                 console.log('Candidates array after push:', candidates.length);
                 console.log('Full candidates array:', candidates);
