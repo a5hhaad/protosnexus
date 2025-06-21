@@ -3655,9 +3655,7 @@
                 case 'Idle':
                     // No additional required fields for Idle status
                     break;
-            }
-
-            // Update candidate data
+            }            // Update candidate data
             Object.assign(candidate, newData);            // Auto-update remarks based on status if status changed
             if (newData.status) {
                 switch(newData.status) {
@@ -3679,13 +3677,19 @@
                 }
             }
 
-            // Reset editing state
-            currentEditingRow = null;
-            
-            // Re-render the table
-            renderTable();
-            updateDashboardIfExists();
-            showToast('Candidate updated successfully', 'success');
+            // Save to API
+            updateCandidateInAPI(candidate).then(() => {
+                // Reset editing state
+                currentEditingRow = null;
+                
+                // Re-render the table
+                renderTable();
+                updateDashboardIfExists();
+                showToast('Candidate updated successfully', 'success');
+            }).catch(error => {
+                console.error('Error updating candidate:', error);
+                showToast('Error updating candidate: ' + error.message, 'error');
+            });
         }
 
         function cancelRowEdit() {
