@@ -2054,25 +2054,11 @@
                     <input type="email" id="modalEmail" class="form-input" required>
                 </div>                <div class="form-group">
                     <label class="form-label">Phone</label>
-                    <input type="tel" id="modalPhone" class="form-input">
-                </div>                <div class="form-group">
-                    <label class="form-label">Working Status</label>
-                    <select id="modalStatus" class="form-input">
-                        <option value="Idle">Idle</option>
-                        <option value="Training">Training</option>
-                        <option value="Scheduling">Scheduling</option>
-                        <option value="Interview">Interview</option>
-                        <option value="L2">L2</option>
-                        <option value="L3">L3</option>
-                        <option value="Working">Working</option>
-                    </select>
-                </div><div class="form-group">
-                    <label class="form-label">Company</label>
-                    <input type="text" id="modalCompany" class="form-input">
-                </div><div class="form-group">
-                    <label class="form-label">Project</label>
-                    <input type="text" id="modalProject" class="form-input">
-                </div>                <div class="form-group" style="text-align: center;">
+                    <div style="display: flex; align-items: center;">
+                        <span style="background: rgba(255, 255, 255, 0.1); padding: 10px 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-right: none; border-radius: 8px 0 0 8px; color: white;">+91</span>
+                        <input type="tel" id="modalPhone" class="form-input" placeholder="Enter 10 digit number" maxlength="10" pattern="[0-9]{10}" style="border-radius: 0 8px 8px 0; flex: 1;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
+                </div><div class="form-group" style="text-align: center;">
                     <button type="submit" id="modalSubmitBtn" class="btn btn-primary" style="width: auto; padding: 12px 24px;">Add Candidate</button>
                 </div>
             </form>
@@ -2344,8 +2330,7 @@
         let currentUploadCandidateId = null;
         let selectedFile = null;
 
-        // Open candidate detail modal
-        function openCandidateModal(candidateId) {
+        // Open candidate detail modal        function openCandidateModal(candidateId) {
             console.log('openCandidateModal called with:', candidateId);
             
             try {
@@ -2355,16 +2340,6 @@
                     document.getElementById('modalName').value = '';
                     document.getElementById('modalEmail').value = '';
                     document.getElementById('modalPhone').value = '';
-                    document.getElementById('modalCompany').value = '';
-                    document.getElementById('modalProject').value = '';
-                    
-                    // For new candidates, only show Idle and Training options
-                    const statusSelect = document.getElementById('modalStatus');
-                    statusSelect.innerHTML = `
-                        <option value="Idle">Idle</option>
-                        <option value="Training">Training</option>
-                    `;
-                    statusSelect.value = 'Idle';
                     
                     // Update button text for new candidate
                     document.getElementById('modalSubmitBtn').textContent = 'Add Candidate';
@@ -2375,25 +2350,10 @@
                     // Existing candidate - populate with current data
                     const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
                     if (!candidate) return;
-                    
-                    // For existing candidates, show all status options
-                    const statusSelect = document.getElementById('modalStatus');
-                    statusSelect.innerHTML = `
-                        <option value="Idle">Idle</option>
-                        <option value="Training">Training</option>
-                        <option value="Scheduling">Scheduling</option>
-                        <option value="Interview">Interview</option>
-                        <option value="L2">L2</option>
-                        <option value="L3">L3</option>
-                        <option value="Working">Working</option>
-                    `;
 
                     document.getElementById('modalName').value = candidate.name;
                     document.getElementById('modalEmail').value = candidate.email;
                     document.getElementById('modalPhone').value = candidate.phone;
-                    document.getElementById('modalCompany').value = candidate.company;
-                    document.getElementById('modalProject').value = candidate.project;
-                    document.getElementById('modalStatus').value = candidate.status;
 
                     // Update button text for editing
                     document.getElementById('modalSubmitBtn').textContent = 'Update Candidate';
@@ -2402,8 +2362,6 @@
                     document.getElementById('candidateForm').dataset.candidateId = candidateId;
                 }
                   console.log('Showing modal');
-                // Set initial visibility of company and project fields
-                handleStatusChange();
                 // Show modal
                 document.getElementById('candidateModal').style.display = 'block';
                 document.body.style.overflow = 'hidden';
@@ -3023,14 +2981,10 @@
         // Event listeners setup
         function setupEventListeners() {            // Search functionality
             document.getElementById('searchInput').addEventListener('input', handleSearch);
-            
-            // Table sorting
+              // Table sorting
             document.querySelectorAll('th.sortable').forEach(th => {
                 th.addEventListener('click', () => handleSort(th.dataset.sort));
             });
-
-            // Status change listener to show/hide company and project fields
-            document.getElementById('modalStatus').addEventListener('change', handleStatusChange);
 
             // Close modal on outside click
             document.getElementById('candidateModal').addEventListener('click', function(e) {
@@ -3114,30 +3068,7 @@
             // Refresh upcoming interviews
             if (typeof displayUpcomingInterviews !== 'undefined') {
                 displayUpcomingInterviews();
-            }
-        }
-
-        // Handle status change to show/hide company and project fields
-        function handleStatusChange() {
-            const status = document.getElementById('modalStatus').value;
-            const companyGroup = document.getElementById('modalCompany').closest('.form-group');
-            const projectGroup = document.getElementById('modalProject').closest('.form-group');
-            const companyInput = document.getElementById('modalCompany');
-            const projectInput = document.getElementById('modalProject');
-            
-            if (status === 'Working') {
-                companyGroup.style.display = 'block';
-                projectGroup.style.display = 'block';
-                companyInput.setAttribute('required', 'required');
-            } else {
-                companyGroup.style.display = 'none';
-                projectGroup.style.display = 'none';
-                companyInput.removeAttribute('required');
-                // Clear the values when hidden
-                companyInput.value = '';
-                projectInput.value = '';
-            }
-        }
+            }        }
 
         // Create a table row for a candidate
         function createTableRow(candidate) {
@@ -3290,33 +3221,39 @@
             
             const candidateIdData = e.target.dataset.candidateId;
             console.log('candidateIdData:', candidateIdData);
-            
-            // If candidateIdData is undefined, check if we're adding a new candidate
+              // If candidateIdData is undefined, check if we're adding a new candidate
             if (!candidateIdData || candidateIdData === 'new') {
                 console.log('Creating new candidate');
                 try {
-                    // Create new candidate
-                    const status = document.getElementById('modalStatus').value;
+                    // Create new candidate with default status as 'Interview'
+                    const status = 'Interview'; // Default status for new candidates
                     const candidateId = candidates.length > 0 ? Math.max(...candidates.map(c => c.id)) + 1 : 1;
                     const email = document.getElementById('modalEmail').value;
                     const name = document.getElementById('modalName').value;
+                    const phone = document.getElementById('modalPhone').value;
                     
-                    console.log('Form data:', { name, email, status });
+                    console.log('Form data:', { name, email, phone, status });
                     console.log('New candidate ID will be:', candidateId);
                     
                     if (!name || !email) {
                         showToast('Name and email are required', 'error');
                         return false;
                     }
+
+                    // Validate phone number (should be exactly 10 digits)
+                    if (phone && !/^[0-9]{10}$/.test(phone)) {
+                        showToast('Please enter a valid 10-digit phone number', 'error');
+                        return false;
+                    }
                       const newCandidate = {
                     // Don't include ID here - let the API generate it
                     name: name,
                     email: email,
-                    phone: document.getElementById('modalPhone').value,
+                    phone: phone,
                     document: "", // Empty document initially
-                    company: status === 'Working' ? document.getElementById('modalCompany').value : '',
+                    company: '', // Empty company initially
                     status: status,
-                    project: status === 'Working' ? document.getElementById('modalProject').value : '',
+                    project: '', // Empty project initially
                     interview: "", // Empty interview initially
                     interviewType: "", // Empty interview type initially
                     date: "", // Empty date initially
@@ -3333,7 +3270,7 @@
                     candidates.push(savedCandidate);
                     
                     // Log the addition to history (this will also go to API via the candidates.js function)
-                    logChange('Added', savedCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${document.getElementById('modalPhone').value}`);
+                    logChange('Added', savedCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${phone}`);
                     
                     console.log('Candidates array after API save:', candidates.length);
                       // Update UI components
@@ -3353,22 +3290,23 @@
                 } catch (error) {
                     console.error('Error creating new candidate:', error);
                     showToast('Error adding candidate: ' + error.message, 'error');
-                }
-            } else {
+                }            } else {
                 console.log('Updating existing candidate');                // Update existing candidate
                 const candidateId = candidateIdData; // Keep as string, don't parse to int
                 const candidate = candidates.find(c => c.id == candidateId); // Use == for loose comparison
                 
                 if (candidate) {
-                    const status = document.getElementById('modalStatus').value;
+                    const phone = document.getElementById('modalPhone').value;
+                    
+                    // Validate phone number (should be exactly 10 digits)
+                    if (phone && !/^[0-9]{10}$/.test(phone)) {
+                        showToast('Please enter a valid 10-digit phone number', 'error');
+                        return false;
+                    }
                     
                     candidate.name = document.getElementById('modalName').value;
                     candidate.email = document.getElementById('modalEmail').value;
-                    candidate.phone = document.getElementById('modalPhone').value;
-                    candidate.company = status === 'Working' ? document.getElementById('modalCompany').value : '';
-                    candidate.project = status === 'Working' ? document.getElementById('modalProject').value : '';
-                    candidate.status = status;
-                    candidate.remarks = getRemarksByStatus(status);
+                    candidate.phone = phone;
                     
                     // Update in API
                     await updateCandidateInAPI(candidate);
