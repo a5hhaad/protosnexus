@@ -3447,7 +3447,9 @@
                 `;
             }            // Company (index 4) - only editable when Working
             if (candidate.status === 'Working') {
-                cells[4].innerHTML = `<input type="text" class="edit-input" value="${candidate.company || ''}" data-field="company">`;
+                const companyValue = candidate.company || '';
+                const isRequired = !companyValue.trim();
+                cells[4].innerHTML = `<input type="text" class="edit-input ${isRequired ? 'required-field' : ''}" value="${companyValue}" data-field="company" placeholder="${isRequired ? 'Required: Enter company name' : 'Company name'}" style="border-color: ${isRequired ? '#f59e0b' : ''};">`;
             } else {
                 // Show N/A for all other statuses
                 cells[4].innerHTML = `
@@ -3457,7 +3459,9 @@
 
             // Project (index 5) - only editable when Working
             if (candidate.status === 'Working') {
-                cells[5].innerHTML = `<input type="text" class="edit-input" value="${candidate.project || ''}" data-field="project">`;
+                const projectValue = candidate.project || '';
+                const isRequired = !projectValue.trim();
+                cells[5].innerHTML = `<input type="text" class="edit-input ${isRequired ? 'required-field' : ''}" value="${projectValue}" data-field="project" placeholder="${isRequired ? 'Required: Enter project name' : 'Project name'}" style="border-color: ${isRequired ? '#f59e0b' : ''};">`;
             } else {
                 // Show N/A for all other statuses
                 cells[5].innerHTML = `
@@ -3465,7 +3469,9 @@
                 `;
             }            // Date (index 6) - only editable when Working
             if (candidate.status === 'Working') {
-                cells[6].innerHTML = `<input type="date" class="edit-input date-input" value="${candidate.date || ''}" data-field="date" style="width: 100%;">`;
+                const dateValue = candidate.date || '';
+                const isRequired = !dateValue.trim();
+                cells[6].innerHTML = `<input type="date" class="edit-input date-input ${isRequired ? 'required-field' : ''}" value="${dateValue}" data-field="date" placeholder="${isRequired ? 'Required: Select start date' : 'Start date'}" style="width: 100%; border-color: ${isRequired ? '#f59e0b' : ''};" title="${isRequired ? 'Start date is required for Working status' : 'Start date'}">`;
             } else {
                 // Show N/A for all other statuses
                 cells[6].innerHTML = `
@@ -3592,26 +3598,21 @@
                 case 'Training':
                     // No additional required fields for Training status
                     break;                case 'Working':
-                    // Validate all required fields for Working status
-                    if (!newData.company && !candidate.company) {
-                        showToast('Company name is required for Working status', 'error');
-                        return;
-                    }
-                    if (!newData.project && !candidate.project) {
-                        showToast('Project name is required for Working status', 'error');
-                        return;
-                    }
-                    // Use new value if provided, otherwise keep existing value
-                    const currentCompany = newData.company || candidate.company;
-                    const currentProject = newData.project || candidate.project;
+                    // For Working status, validate required fields but allow partial saves with warnings
+                    const finalCompany = newData.company || candidate.company || '';
+                    const finalProject = newData.project || candidate.project || '';
+                    const finalDate = newData.date || candidate.date || '';
                     
-                    if (!currentCompany || currentCompany.trim() === '') {
-                        showToast('Company name is required for Working status', 'error');
-                        return;
-                    }
-                    if (!currentProject || currentProject.trim() === '') {
-                        showToast('Project name is required for Working status', 'error');
-                        return;
+                    let missingFields = [];
+                    if (!finalCompany.trim()) missingFields.push('Company');
+                    if (!finalProject.trim()) missingFields.push('Project');
+                    if (!finalDate.trim()) missingFields.push('Start Date');
+                    
+                    if (missingFields.length > 0) {
+                        showToast(`Working status saved. Please fill in the following required fields: ${missingFields.join(', ')}`, 'warning');
+                        // Don't return - allow the save to continue
+                    } else {
+                        showToast('Working status saved with all required details completed!', 'success');
                     }
                     break;
                 case 'Idle':
@@ -3806,19 +3807,13 @@
             const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (!candidate) return;
 
-            // If changing to Working status, validate that required fields will be filled
+            // Allow changing to Working status and show helpful message about required fields
             if (newStatus === 'Working') {
                 const currentCompany = candidate.company || '';
                 const currentProject = candidate.project || '';
                 
                 if (!currentCompany.trim() || !currentProject.trim()) {
-                    showToast('Company and Project fields are required for Working status. Please ensure these fields are filled before changing status to Working.', 'error');
-                    // Revert the dropdown selection
-                    const statusSelect = document.querySelector(`tr[data-candidate-id="${candidateId}"] select[data-field="status"]`);
-                    if (statusSelect) {
-                        statusSelect.value = candidate.status;
-                    }
-                    return;
+                    showToast('Status changed to Working. Please fill in Company and Project fields below to complete the details.', 'info');
                 }
             }
 
@@ -3891,11 +3886,11 @@
                 cells[3].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
-            }
-
-            // Company (index 4) - only editable when Working
+            }            // Company (index 4) - only editable when Working
             if (newStatus === 'Working') {
-                cells[4].innerHTML = `<input type="text" class="edit-input" value="${candidate.company || ''}" data-field="company">`;
+                const companyValue = candidate.company || '';
+                const isRequired = !companyValue.trim();
+                cells[4].innerHTML = `<input type="text" class="edit-input ${isRequired ? 'required-field' : ''}" value="${companyValue}" data-field="company" placeholder="${isRequired ? 'Required: Enter company name' : 'Company name'}" style="border-color: ${isRequired ? '#f59e0b' : ''};">`;
             } else {
                 cells[4].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
@@ -3904,7 +3899,9 @@
 
             // Project (index 5) - only editable when Working
             if (newStatus === 'Working') {
-                cells[5].innerHTML = `<input type="text" class="edit-input" value="${candidate.project || ''}" data-field="project">`;
+                const projectValue = candidate.project || '';
+                const isRequired = !projectValue.trim();
+                cells[5].innerHTML = `<input type="text" class="edit-input ${isRequired ? 'required-field' : ''}" value="${projectValue}" data-field="project" placeholder="${isRequired ? 'Required: Enter project name' : 'Project name'}" style="border-color: ${isRequired ? '#f59e0b' : ''};">`;
             } else {
                 cells[5].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
@@ -3913,7 +3910,9 @@
 
             // Date (index 6) - only editable when Working
             if (newStatus === 'Working') {
-                cells[6].innerHTML = `<input type="date" class="edit-input date-input" value="${candidate.date || ''}" data-field="date" style="width: 100%;">`;} else {
+                const dateValue = candidate.date || '';
+                const isRequired = !dateValue.trim();
+                cells[6].innerHTML = `<input type="date" class="edit-input date-input ${isRequired ? 'required-field' : ''}" value="${dateValue}" data-field="date" placeholder="${isRequired ? 'Required: Select start date' : 'Start date'}" style="width: 100%; border-color: ${isRequired ? '#f59e0b' : ''};" title="${isRequired ? 'Start date is required for Working status' : 'Start date'}">`;}else {
                 cells[6].innerHTML = `
                     <span style="color: rgba(255, 255, 255, 0.7); font-size: 0.8rem; font-style: italic; background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">N/A</span>
                 `;
