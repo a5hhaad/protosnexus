@@ -3219,21 +3219,20 @@
             console.log('handleModalSubmit called');
             console.log('Event target:', e.target);
             console.log('Form element:', document.getElementById('candidateForm'));
-            
-            const candidateIdData = e.target.dataset.candidateId;
+              const candidateIdData = e.target.dataset.candidateId;
             console.log('candidateIdData:', candidateIdData);
-              // If candidateIdData is undefined, check if we're adding a new candidate
+            
+            // If candidateIdData is undefined, check if we're adding a new candidate
             if (!candidateIdData || candidateIdData === 'new') {
                 console.log('Creating new candidate');
                 try {
-                    // Create new candidate with default status as 'Interview'
-                    const status = 'Interview'; // Default status for new candidates
+                    // Create new candidate without any default status
                     const candidateId = candidates.length > 0 ? Math.max(...candidates.map(c => c.id)) + 1 : 1;
                     const email = document.getElementById('modalEmail').value;
                     const name = document.getElementById('modalName').value;
                     const phone = document.getElementById('modalPhone').value;
                     
-                    console.log('Form data:', { name, email, phone, status });
+                    console.log('Form data:', { name, email, phone });
                     console.log('New candidate ID will be:', candidateId);
                     
                     if (!name || !email) {
@@ -3253,13 +3252,13 @@
                     phone: phone,
                     document: "", // Empty document initially
                     company: '', // Empty company initially
-                    status: status,
+                    status: '', // No default status
                     project: '', // Empty project initially
                     interview: "", // Empty interview initially
                     interviewType: "", // Empty interview type initially
                     date: "", // Empty date initially
                     blockers: [],
-                    remarks: getRemarksByStatus(status)
+                    remarks: '' // No default remarks
                     };
                     
                     console.log('New candidate object:', newCandidate);
@@ -3271,7 +3270,7 @@
                     candidates.push(savedCandidate);
                     
                     // Log the addition to history (this will also go to API via the candidates.js function)
-                    logChange('Added', savedCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${phone}`);
+                    logChange('Added', savedCandidate.name, `New candidate added - Email: ${email}, Phone: ${phone}`);
                     
                     console.log('Candidates array after API save:', candidates.length);
                       // Update UI components
@@ -3284,14 +3283,14 @@
                     }
                     
                     updateDashboardIfExists();
-                    
-                    closeModal();
+                      closeModal();
                     showToast('New candidate added successfully', 'success');
                     console.log('New candidate added successfully');
                 } catch (error) {
                     console.error('Error creating new candidate:', error);
                     showToast('Error adding candidate: ' + error.message, 'error');
-                }            } else {
+                }
+            } else {
                 console.log('Updating existing candidate');                // Update existing candidate
                 const candidateId = candidateIdData; // Keep as string, don't parse to int
                 const candidate = candidates.find(c => c.id == candidateId); // Use == for loose comparison
