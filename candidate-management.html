@@ -2183,13 +2183,97 @@
             
             // Redirect to login page
             window.location.href = 'login.html';
-        }
-
-        // Candidate data structure - starts empty
+        }        // Candidate data structure - loaded from API
         let candidates = [];
 
-        // Initialize with sample data
-        function initializeData() {
+        // API Functions for MongoDB integration
+        async function loadCandidatesFromAPI() {
+            try {
+                console.log('Loading candidates from API...');
+                const response = await fetch('/api/candidates');
+                if (response.ok) {
+                    candidates = await response.json();
+                    console.log('Candidates loaded:', candidates.length);
+                } else {
+                    console.error('Failed to load candidates:', response.status);
+                    // Initialize with sample data if API fails
+                    initializeWithSampleData();
+                }
+            } catch (error) {
+                console.error('Error loading candidates:', error);
+                // Initialize with sample data if API fails
+                initializeWithSampleData();
+            }
+        }
+
+        async function saveCandidateToAPI(candidate) {
+            try {
+                console.log('Saving candidate to API:', candidate);
+                const response = await fetch('/api/candidates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(candidate)
+                });
+                
+                if (response.ok) {
+                    const savedCandidate = await response.json();
+                    console.log('Candidate saved successfully:', savedCandidate);
+                    return savedCandidate;
+                } else {
+                    throw new Error(`Failed to save candidate: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error saving candidate:', error);
+                throw error;
+            }
+        }
+
+        async function updateCandidateInAPI(candidate) {
+            try {
+                console.log('Updating candidate in API:', candidate);
+                const response = await fetch('/api/candidates', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(candidate)
+                });
+                
+                if (response.ok) {
+                    console.log('Candidate updated successfully');
+                    return true;
+                } else {
+                    throw new Error(`Failed to update candidate: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error updating candidate:', error);
+                throw error;
+            }
+        }
+
+        async function deleteCandidateFromAPI(candidateId) {
+            try {
+                console.log('Deleting candidate from API:', candidateId);
+                const response = await fetch(`/api/candidates?id=${candidateId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    console.log('Candidate deleted successfully');
+                    return true;
+                } else {
+                    throw new Error(`Failed to delete candidate: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error deleting candidate:', error);
+                throw error;
+            }
+        }
+
+        // Initialize with sample data (fallback)
+        function initializeWithSampleData() {
             const sampleData = [
                 {
                     id: 1,
@@ -2250,18 +2334,26 @@
                     date: "",
                     blockers: ["Visa processing"],
                     remarks: "Currently Idle"
-                }
-            ];            // Load from localStorage or start with empty array
-            const savedData = localStorage.getItem('candidates');
-            if (savedData) {
-                candidates = JSON.parse(savedData);
-            } else {
-                candidates = [];
-                saveCandidates();
+                }            ];
+
+            // Use sample data as fallback
+            candidates = sampleData;
+            console.log('Initialized with sample data');
+        }
+
+        // Initialize the application with API data
+        async function initializeApplication() {
+            console.log('Initializing application...');
+            try {
+                await loadCandidatesFromAPI();
+                renderTable();
+                updateDashboard();
+            } catch (error) {
+                console.error('Failed to initialize with API, using sample data:', error);
+                initializeWithSampleData();
+                renderTable();
+                updateDashboard();
             }
-        }// Save candidates to localStorage
-        function saveCandidates() {
-            localStorage.setItem('candidates', JSON.stringify(candidates));
         }
 
         // Load theme from localStorage
@@ -2651,15 +2743,13 @@
             renderCalendar();        }        // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM Content Loaded');
-            initializeData();
-            renderTable();
-            updateDashboard();
+            initializeApplication(); // This now loads from API instead of localStorage
             setupEventListeners();
             loadTheme();
             renderCalendar();
             displayUpcomingInterviews();
             initializeSandClock();
-        });        // Sand Clock Functions
+        });// Sand Clock Functions
         function initializeSandClock() {
             updateSandClock();
             // Update more frequently for smoother sand movement
@@ -3243,10 +3333,8 @@
             // Field updates now only happen through row editing
             showToast('Use the Edit button to modify candidate information', 'warning');
             return;
-        }
-
-        // Handle modal form submission
-        function handleModalSubmit(e) {
+        }        // Handle modal form submission
+        async function handleModalSubmit(e) {
             e.preventDefault();
             console.log('handleModalSubmit called');
             console.log('Event target:', e.target);
@@ -3291,32 +3379,36 @@
                     
                     console.log('New candidate object:', newCandidate);
                     
-                    candidates.push(newCandidate);
-                  // Log the addition to history
-                logChange('Added', newCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${document.getElementById('modalPhone').value}`);
-                
-                console.log('Candidates array after push:', candidates.length);
-                console.log('Full candidates array:', candidates);
-                
-                // Try to update UI components with safety checks
-                try {
-                    if (document.getElementById('candidateTableBody')) {
-                        renderTable();
+                    // Save to API first
+                    const savedCandidate = await saveCandidateToAPI(newCandidate);
+                    
+                    // Add to local array with the ID from API
+                    candidates.push(savedCandidate);
+                    
+                    // Log the addition to history (this will also go to API via the candidates.js function)
+                    logChange('Added', savedCandidate.name, `New candidate added with status: ${status}, Email: ${email}, Phone: ${document.getElementById('modalPhone').value}`);
+                    
+                    console.log('Candidates array after API save:', candidates.length);
+                    
+                    // Update UI components
+                    try {
+                        if (document.getElementById('candidateTableBody')) {
+                            renderTable();
+                        }
+                    } catch (e) {
+                        console.warn('Could not update table:', e.message);
                     }
-                } catch (e) {
-                    console.warn('Could not update table:', e.message);
-                }
-                
-                try {
-                    if (document.getElementById('statsGrid')) {
-                        updateDashboard();
+                    
+                    try {
+                        if (document.getElementById('statsGrid')) {
+                            updateDashboard();
+                        }
+                    } catch (e) {
+                        console.warn('Could not update dashboard:', e.message);
                     }
-                } catch (e) {
-                    console.warn('Could not update dashboard:', e.message);
-                }
-                
-                closeModal();
-                showToast('New candidate added successfully', 'success');
+                    
+                    closeModal();
+                    showToast('New candidate added successfully', 'success');
                 
                 console.log('New candidate added successfully');
                 } catch (error) {
@@ -3324,8 +3416,8 @@
                     showToast('Error adding candidate: ' + error.message, 'error');
                 }
             } else {
-                console.log('Updating existing candidate');
-                // Update existing candidate                const candidateId = parseInt(candidateIdData);
+                console.log('Updating existing candidate');                // Update existing candidate
+                const candidateId = parseInt(candidateIdData);
                 const candidate = candidates.find(c => c.id === candidateId);
                 
                 if (candidate) {
@@ -3338,7 +3430,11 @@
                     candidate.project = status === 'Working' ? document.getElementById('modalProject').value : '';
                     candidate.status = status;
                     candidate.remarks = getRemarksByStatus(status);
-                      renderTable();
+                    
+                    // Update in API
+                    await updateCandidateInAPI(candidate);
+                    
+                    renderTable();
                     updateDashboard();
                     closeModal();
                     showToast('Candidate updated successfully', 'success');
@@ -3662,16 +3758,25 @@
                 currentEditingRow = null;
                 renderTable(); // Re-render to restore original state
             }
-        }
-
-        // Delete candidate
-        function deleteCandidate(candidateId) {                if (confirm('Are you sure you want to delete this candidate?')) {
+        }        // Delete candidate
+        async function deleteCandidate(candidateId) {
+            if (confirm('Are you sure you want to delete this candidate?')) {
+                try {
+                    // Delete from API first
+                    await deleteCandidateFromAPI(candidateId);
+                    
+                    // Remove from local array
                     candidates = candidates.filter(c => c.id !== candidateId);
+                    
                     renderTable();
                     updateDashboard();
                     showToast('Candidate deleted successfully', 'success');
+                } catch (error) {
+                    console.error('Error deleting candidate:', error);
+                    showToast('Error deleting candidate: ' + error.message, 'error');
                 }
             }
+        }
             
             // Generate a permanent unique link for a candidate
         function generatePermanentLink(candidateId, email) {
