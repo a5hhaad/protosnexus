@@ -350,6 +350,25 @@
             </table>
         </div>
     </div>    <script>
+        // Check authentication on page load
+        function checkAuthentication() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userEmail = sessionStorage.getItem('userEmail');
+            
+            if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
+                // Redirect to login if not authenticated
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Check authentication immediately
+        if (!checkAuthentication()) {
+            // Stop script execution if not authenticated
+            throw new Error('Authentication required');
+        }
+
         // Go back to main dashboard
         function goBack() {
             // Try to go back in history first
@@ -361,8 +380,9 @@
             }
         }
 
-        // Load history data on page load        document.addEventListener('DOMContentLoaded', function() {
-            loadHistory();
+        // Load history data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistory().catch(console.error);
         });
 
         async function loadHistory() {
