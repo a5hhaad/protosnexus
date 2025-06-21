@@ -1,19 +1,19 @@
 {
   "name": "protosnexus-candidate-management",
   "version": "1.0.0",
-  "description": "Professional candidate management system with MongoDB Atlas integration",
+  "description": "Professional candidate management system with Neon PostgreSQL integration",
   "main": "index.html",  "scripts": {
     "build": "echo 'Build complete - Ready for Netlify'",
     "start": "netlify dev"
-  },
-  "dependencies": {
-    "mongodb": "^6.0.0"
+  },  "dependencies": {
+    "pg": "^8.11.3"
   },
   "engines": {
     "node": "18.x"
   },  "keywords": [
     "candidate-management",
-    "mongodb",
+    "neon-db",
+    "postgresql",
     "netlify",
     "recruitment",
     "protos-nexus"
