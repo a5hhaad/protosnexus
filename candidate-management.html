@@ -2006,15 +2006,11 @@
         </div>
           <div class="control-buttons">
             <button class="btn btn-primary" onclick="addCandidate()">
-                ➕ Add Candidate            </button>
-            <button class="btn btn-secondary" onclick="exportData()">
+                ➕ Add Candidate            </button>            <button class="btn btn-secondary" onclick="exportData()">
                 📊 Export to Excel
             </button>
             <button class="btn btn-secondary" onclick="window.open('history.html', '_blank')">
                 📋 History
-            </button>
-            <button class="btn btn-danger" onclick="clearAllData()" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                🗑️ Clear All Data
             </button>
         </div>
     </div>
@@ -2107,6 +2103,35 @@
                 </button>
                 <button class="btn btn-secondary" onclick="closeUploadModal()" style="flex: 1;">
                     ❌ Cancel
+                </button>
+            </div>
+        </div>    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1rem;">
+                <h2 class="modal-title" style="color: #ef4444; display: flex; align-items: center; gap: 0.5rem;">
+                    🗑️ Delete Candidate
+                </h2>
+            </div>
+            <div class="modal-body" style="padding: 0 0 1.5rem 0;">
+                <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 0.5rem;">
+                    Are you sure you want to delete this candidate?
+                </p>
+                <p id="deleteCandidateName" style="color: #fff; font-weight: 600; margin-bottom: 1rem;">
+                    <!-- Candidate name will be inserted here -->
+                </p>
+                <p style="color: #fbbf24; font-size: 0.9rem; margin: 0;">
+                    ⚠️ This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()" style="padding: 0.5rem 1rem;">
+                    Cancel
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-danger" style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 0.5rem 1rem;">
+                    Delete
                 </button>
             </div>
         </div>
@@ -3038,12 +3063,17 @@
                 if (e.target === this) {
                     closeModal();
                 }
-            });
-
-            // Upload modal outside click
+            });            // Upload modal outside click
             document.getElementById('uploadModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     closeUploadModal();
+                }
+            });
+
+            // Delete modal outside click
+            document.getElementById('deleteModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteModal();
                 }
             });
 
@@ -3695,22 +3725,54 @@
                 renderTable(); // Re-render to restore original state
             }
         }        // Delete candidate
-        async function deleteCandidate(candidateId) {
-            if (confirm('Are you sure you want to delete this candidate?')) {
-                try {
-                    // Delete from API first
-                    await deleteCandidateFromAPI(candidateId);
-                    
-                    // Remove from local array (use loose comparison for ID)
-                    candidates = candidates.filter(c => c.id != candidateId);
-                    
-                    renderTable();
-                    updateDashboardIfExists();
-                    showToast('Candidate deleted successfully', 'success');
-                } catch (error) {
-                    console.error('Error deleting candidate:', error);
-                    showToast('Error deleting candidate: ' + error.message, 'error');
-                }
+        function deleteCandidate(candidateId) {
+            const candidate = candidates.find(c => c.id == candidateId);
+            if (!candidate) {
+                showToast('Candidate not found', 'error');
+                return;
+            }
+            
+            // Show custom delete confirmation modal
+            showDeleteConfirmation(candidateId, candidate.name);
+        }
+
+        // Show delete confirmation modal
+        function showDeleteConfirmation(candidateId, candidateName) {
+            document.getElementById('deleteCandidateName').textContent = candidateName;
+            document.getElementById('deleteModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Set up the confirm button click handler
+            document.getElementById('confirmDeleteBtn').onclick = () => confirmDelete(candidateId);
+        }
+
+        // Close delete confirmation modal
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Clean up the click handler
+            document.getElementById('confirmDeleteBtn').onclick = null;
+        }
+
+        // Actually delete the candidate
+        async function confirmDelete(candidateId) {
+            try {
+                closeDeleteModal();
+                showToast('Deleting candidate...', 'info');
+                
+                // Delete from API first
+                await deleteCandidateFromAPI(candidateId);
+                
+                // Remove from local array (use loose comparison for ID)
+                candidates = candidates.filter(c => c.id != candidateId);
+                
+                renderTable();
+                updateDashboardIfExists();
+                showToast('Candidate deleted successfully', 'success');
+            } catch (error) {
+                console.error('Error deleting candidate:', error);
+                showToast('Error deleting candidate: ' + error.message, 'error');
             }
         }
             
@@ -4135,37 +4197,8 @@
             const filename = `ProtosNexus_${dateStr}.xlsx`;
 
             // Download the Excel file
-            XLSX.writeFile(wb, filename);              showToast(`Excel file exported successfully: ${filename}`, 'success');
-        }
+            XLSX.writeFile(wb, filename);              showToast(`Excel file exported successfully: ${filename}`, 'success');        }
 
-        // Clear all data from database
-        async function clearAllData() {
-            if (confirm('⚠️ WARNING: This will permanently delete ALL candidates and history data from the database.\n\nThis action cannot be undone. Are you sure you want to continue?')) {
-                try {
-                    showToast('Clearing all data...', 'info');
-                      const response = await fetch('/.netlify/functions/candidates?action=clear', {
-                        method: 'PATCH'
-                    });
-                    
-                    if (response.ok) {
-                        // Clear local array
-                        candidates = [];
-                        
-                        // Update UI
-                        renderTable();
-                        updateDashboardIfExists();
-                        
-                        showToast('All data cleared successfully', 'success');
-                    } else {
-                        throw new Error(`Failed to clear data: ${response.status}`);
-                    }
-                } catch (error) {
-                    console.error('Error clearing data:', error);
-                    showToast('Error clearing data: ' + error.message, 'error');
-                }
-            }
-        }
-        
         
         // History tracking functionality
         function logChange(action, candidateName, details) {
@@ -4218,12 +4251,13 @@
     
     </script>
 
-    <script>
-        // Keyboard navigation
+    <script>        // Keyboard navigation
         function handleKeyboard(e) {
             if (e.key === 'Escape') {
                 if (currentEditingRow) {
                     cancelRowEdit();
+                } else if (document.getElementById('deleteModal').style.display === 'block') {
+                    closeDeleteModal();
                 } else {
                     closeModal();
                 }
