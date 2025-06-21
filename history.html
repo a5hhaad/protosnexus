@@ -347,10 +347,9 @@
         function checkAuthentication() {
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             const userEmail = sessionStorage.getItem('userEmail');
-            
-            if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
+              if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
                 // Redirect to login if not authenticated
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return false;
             }
             return true;
@@ -366,10 +365,9 @@
         function goBack() {
             // Try to go back in history first
             if (window.history.length > 1) {
-                window.history.back();
-            } else {
+                window.history.back();            } else {
                 // If no history, navigate to candidate management page
-                window.location.href = 'candidate-management.html';
+                window.location.href = '/candidate-management';
             }
         }
 

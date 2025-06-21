@@ -605,10 +605,9 @@
                 const loginTime = new Date(sessionStorage.getItem('loginTime'));
                 const now = new Date();
                 const hoursSinceLogin = (now - loginTime) / (1000 * 60 * 60);
-                
-                // Auto-logout after 8 hours
+                  // Auto-logout after 8 hours
                 if (hoursSinceLogin < 8) {
-                    window.location.href = 'candidate-management.html';
+                    window.location.href = '/candidate-management';
                 } else {
                     sessionStorage.clear();
                 }
@@ -662,7 +661,7 @@
             document.getElementById('successMessage').style.display = 'none';
         }        function showAmazingTransition() {
             // Direct redirect to main page
-            window.location.href = 'candidate-management.html';
+            window.location.href = '/candidate-management';
         }
           // Add enter key support for password field
         document.getElementById('password').addEventListener('keypress', function(e) {

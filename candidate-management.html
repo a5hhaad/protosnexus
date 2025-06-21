@@ -2009,7 +2009,7 @@
                 ➕ Add Candidate            </button>            <button class="btn btn-secondary" onclick="exportData()">
                 📊 Export to Excel
             </button>
-            <button class="btn btn-secondary" onclick="window.open('history.html', '_blank')">
+            <button class="btn btn-secondary" onclick="window.open('/history', '_blank')">
                 📋 History
             </button>
         </div>
@@ -2189,10 +2189,9 @@
         function checkAuthentication() {
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             const userEmail = sessionStorage.getItem('userEmail');
-            
-            if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
+              if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
                 // Redirect to login if not authenticated
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return false;
             }
             return true;
@@ -2202,14 +2201,13 @@
             throw new Error('Authentication required');
         }
 
-        // Logout function
-        function logout() {
+        // Logout function        function logout() {
             // Clear all session data
             sessionStorage.clear();
             localStorage.clear();
-            
-            // Redirect to login page
-            window.location.href = 'login.html';        }
+              // Redirect to login page
+            window.location.href = '/login';
+        }
 
         // Candidate data structure - loaded from API
         let candidates = [];
