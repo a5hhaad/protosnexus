@@ -3081,8 +3081,7 @@
         let isSharedAccess = authResult === 'shared';
         let sharedCandidateId = null;        if (isSharedAccess) {
             const urlParams = new URLSearchParams(window.location.search);
-            sharedCandidateId = urlParams.get('c');
-        }function setupSharedCandidateView(candidateId) {
+            sharedCandidateId = urlParams.get('c');        }function setupSharedCandidateView(candidateId) {
             // Hide admin elements but KEEP calendar, clock, and table visible
             const elementsToHide = [
                 '.logout-button',
@@ -3094,6 +3093,24 @@
                 const elements = document.querySelectorAll(selector);
                 elements.forEach(el => el.style.display = 'none');
             });
+              // EXPLICITLY SHOW the table container and calendar
+            const tableContainer = document.querySelector('.table-container');
+            if (tableContainer) {
+                tableContainer.style.display = 'block';
+                console.log('Table container set to visible');
+            }
+            
+            // Also ensure the main content area is visible
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.display = 'block';
+            }
+            
+            // Ensure table wrapper is visible
+            const tableWrapper = document.querySelector('.table-wrapper');
+            if (tableWrapper) {
+                tableWrapper.style.display = 'block';
+            }
             
             // SHOW calendar container, upcoming interviews, and clock
             const calendarContainer = document.querySelector('.calendar-container');
@@ -3116,10 +3133,11 @@
                 const sharedCandidate = candidates.find(c => c.id == candidateId);
                 if (sharedCandidate) {
                     // Don't filter candidates - show all but mark which one can be edited
-                    window.editableCandidateId = parseInt(candidateId);
-                    console.log('Setting editableCandidateId to:', window.editableCandidateId, 'for candidate:', sharedCandidate.name);
+                    window.editableCandidateId = parseInt(candidateId);                    console.log('Setting editableCandidateId to:', window.editableCandidateId, 'for candidate:', sharedCandidate.name);
                     console.log('All candidate IDs:', candidates.map(c => ({id: c.id, name: c.name})));
+                    console.log('About to render table for shared view...');
                     renderTable();
+                    console.log('Table rendered for shared view');
                     
                     // Hide sensitive columns and apply public view restrictions
                     hidesensitiveColumns();
@@ -3151,9 +3169,14 @@
                 th:nth-child(10), td:nth-child(10), /* Contact */
                 th:nth-child(11), td:nth-child(11)  /* Actions */
                 { display: none !important; }
-                
-                /* Hide admin-only controls within calendar */
+                  /* Hide admin-only controls within calendar */
                 .calendar-plus-btn { display: none !important; }
+                
+                /* Ensure table and main content are visible in shared view */
+                .main-content, .table-container, .table-wrapper { 
+                    display: block !important; 
+                    visibility: visible !important;
+                }
                 
                 .table-container::after {
                     content: "📌 Real-time candidate information portal - Contact details hidden for privacy";
