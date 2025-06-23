@@ -3438,7 +3438,8 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Add new candidate        function addCandidate() {
+        // Add new candidate
+        function addCandidate() {
             // Prevent adding candidates in shared mode
             if (window.editableCandidateId) {
                 alert('Adding new candidates is not allowed in shared view mode.');
@@ -3453,14 +3454,13 @@
                 console.error('Error in addCandidate:', error);
                 alert('Error opening modal: ' + error.message);
             }
-        }
-
-        // Make function globally accessible
+        }        // Make function globally accessible
         window.addCandidate = addCandidate;
 
         // Schedule Interview Modal Functions
         function openScheduleModal() {
-            // Prevent scheduling interviews in shared mode            if (window.editableCandidateId) {
+            // Prevent scheduling interviews in shared mode
+            if (window.editableCandidateId) {
                 alert('Scheduling interviews is not allowed in shared view mode.');
                 return;
             }
