@@ -994,13 +994,673 @@
             justify-content: space-between;
             align-items: center;
             margin: 0.5rem 0;
+        }        .calendar-title {
+            color: var(--text-primary);
         }
 
-        .calendar-title {
-            color: var(--text-primary);
-            font-size: 1rem;
-            font-weight: 500;
-            margin: 0;
+        /* =============================================================================
+           RESPONSIVE DESIGN - MEDIA QUERIES FOR ALL DEVICES
+           ============================================================================= */
+
+        /* Large Desktop (1400px and up) */
+        @media (min-width: 1400px) {
+            .header h1 {
+                font-size: 3rem;
+            }
+            
+            .table-container {
+                margin: 3rem;
+            }
+            
+            .controls {
+                margin: 3rem;
+            }
+        }
+
+        /* Standard Desktop (1024px to 1399px) */
+        @media (max-width: 1399px) {
+            th, td {
+                font-size: 0.75rem;
+                padding: 0.6rem;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Tablet Landscape (768px to 1023px) */
+        @media (max-width: 1023px) {
+            .header {
+                margin: 1.5rem;
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .logout-button {
+                top: 1.5rem;
+                right: 1.5rem;
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .controls {
+                margin: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .control-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .table-container {
+                margin: 1.5rem;
+            }
+            
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                min-width: 900px;
+                font-size: 0.7rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.3rem;
+                font-size: 0.7rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .calendar-container {
+                flex-direction: column;
+                margin: 1.5rem;
+                padding: 1rem;
+            }
+            
+            .calendar-section,
+            .events-section {
+                flex: none;
+                width: 100%;
+                height: auto;
+                min-height: 300px;
+            }
+            
+            .modal-content {
+                max-width: 90%;
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+
+        /* Tablet Portrait (576px to 767px) */
+        @media (max-width: 767px) {
+            .header {
+                margin: 1rem;
+                padding: 1rem;
+                position: relative;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .logout-button {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-top: 1rem;
+                width: 100%;
+                padding: 0.75rem;
+            }
+            
+            .controls {
+                margin: 1rem;
+                gap: 0.75rem;
+            }
+            
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .table-container {
+                margin: 1rem;
+                border-radius: 15px;
+            }
+            
+            table {
+                min-width: 800px;
+                font-size: 0.65rem;
+            }
+            
+            th, td {
+                padding: 0.4rem 0.2rem;
+                font-size: 0.65rem;
+            }
+            
+            .candidate-name {
+                font-size: 0.7rem;
+                display: block;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                max-width: 80px;
+            }
+            
+            .contact-icons {
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+            
+            .contact-icon {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+            
+            .action-btn {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.7rem;
+                min-width: 60px;
+                height: 28px;
+            }
+            
+            .edit-actions {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+            
+            .edit-actions .btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+                min-width: 60px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .dashboard {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                max-width: 95%;
+                padding: 1rem;
+                border-radius: 15px;
+            }
+            
+            .modal-title {
+                font-size: 1.2rem;
+            }
+            
+            .form-input {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
+            
+            .toast {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+                transform: translateY(-100px);
+                font-size: 0.9rem;
+            }
+            
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Landscape (481px to 575px) */
+        @media (max-width: 575px) {
+            .header {
+                margin: 0.75rem;
+                padding: 0.75rem;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header p {
+                font-size: 0.8rem;
+            }
+            
+            .controls {
+                margin: 0.75rem;
+                gap: 0.5rem;
+            }
+            
+            .search-input {
+                padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .search-icon {
+                left: 0.75rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                flex: 1;
+                min-width: 100px;
+            }
+            
+            .control-buttons {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+                width: 100%;
+            }
+            
+            .table-container {
+                margin: 0.75rem;
+                border-radius: 12px;
+            }
+            
+            table {
+                min-width: 700px;
+                font-size: 0.6rem;
+            }
+            
+            th, td {
+                padding: 0.3rem 0.1rem;
+                font-size: 0.6rem;
+            }
+            
+            /* Specific column adjustments for mobile */
+            th:nth-child(1), td:nth-child(1) { width: 12%; } /* Candidate */
+            th:nth-child(2), td:nth-child(2) { width: 8%; }  /* Work Status */
+            th:nth-child(3), td:nth-child(3) { width: 6%; }  /* Document */
+            th:nth-child(4), td:nth-child(4) { width: 8%; }  /* Interview */
+            th:nth-child(5), td:nth-child(5) { width: 10%; } /* Company */
+            th:nth-child(6), td:nth-child(6) { width: 8%; }  /* Project */
+            th:nth-child(7), td:nth-child(7) { width: 6%; }  /* Date */
+            th:nth-child(8), td:nth-child(8) { width: 8%; }  /* Blockers */
+            th:nth-child(9), td:nth-child(9) { width: 8%; }  /* Remarks */
+            th:nth-child(10), td:nth-child(10) { width: 8%; } /* Contact */
+            th:nth-child(11), td:nth-child(11) { width: 10%; } /* Actions */
+            
+            .candidate-name {
+                max-width: 60px;
+                font-size: 0.65rem;
+            }
+            
+            .status-badge {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.4rem;
+            }
+            
+            .blocker-tag {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.4rem;
+            }
+            
+            .dashboard {
+                margin: 0.75rem;
+                padding: 0.75rem;
+            }
+            
+            .dashboard-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Mobile Portrait (320px to 480px) */
+        @media (max-width: 480px) {
+            .header {
+                margin: 0.5rem;
+                padding: 0.5rem;
+                border-radius: 12px;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+                line-height: 1.2;
+            }
+            
+            .header p {
+                font-size: 0.75rem;
+                line-height: 1.3;
+            }
+            
+            .logout-button {
+                padding: 0.6rem;
+                font-size: 0.8rem;
+            }
+            
+            .controls {
+                margin: 0.5rem;
+                gap: 0.5rem;
+            }
+            
+            .search-input {
+                padding: 0.6rem 0.6rem 0.6rem 2.2rem;
+                font-size: 0.85rem;
+            }
+            
+            .search-icon {
+                left: 0.6rem;
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.75rem;
+                min-width: 80px;
+            }
+            
+            .table-container {
+                margin: 0.5rem;
+                border-radius: 10px;
+            }
+            
+            /* Stack table for very small screens */
+            .table-wrapper {
+                overflow-x: auto;
+                overflow-y: visible;
+            }
+            
+            table {
+                min-width: 600px;
+                font-size: 0.55rem;
+            }
+            
+            th, td {
+                padding: 0.25rem 0.1rem;
+                font-size: 0.55rem;
+                line-height: 1.2;
+            }
+            
+            .candidate-name {
+                max-width: 50px;
+                font-size: 0.6rem;
+            }
+            
+            .contact-icons {
+                gap: 0.1rem;
+            }
+            
+            .contact-icon {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .action-btn {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.6rem;
+                min-width: 50px;
+                height: 24px;
+            }
+            
+            .edit-actions .btn {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.6rem;
+                min-width: 50px;
+            }
+            
+            .modal-content {
+                max-width: 98%;
+                margin: 0.5rem;
+                padding: 0.75rem;
+                border-radius: 12px;
+                max-height: 90vh;
+            }
+            
+            .modal-title {
+                font-size: 1.1rem;
+            }
+            
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            .form-input {
+                padding: 0.5rem;
+                font-size: 0.85rem;
+            }
+            
+            .form-label {
+                font-size: 0.9rem;
+                margin-bottom: 0.3rem;
+            }
+            
+            .dashboard {
+                margin: 0.5rem;
+                padding: 0.5rem;
+            }
+            
+            .dashboard-title {
+                font-size: 1.1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+            }
+            
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            
+            .stat-label {
+                font-size: 0.8rem;
+            }
+            
+            .toast {
+                top: 0.5rem;
+                right: 0.5rem;
+                left: 0.5rem;
+                padding: 0.75rem 1rem;
+                font-size: 0.8rem;
+                border-radius: 8px;
+            }
+        }
+
+        /* Extra Small Mobile (Below 320px) */
+        @media (max-width: 319px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            
+            .header p {
+                font-size: 0.7rem;
+            }
+            
+            table {
+                min-width: 500px;
+                font-size: 0.5rem;
+            }
+            
+            th, td {
+                padding: 0.2rem 0.05rem;
+                font-size: 0.5rem;
+            }
+            
+            .candidate-name {
+                max-width: 40px;
+                font-size: 0.55rem;
+            }
+            
+            .btn {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+            
+            .action-btn {
+                padding: 0.15rem 0.3rem;
+                font-size: 0.55rem;
+                min-width: 45px;
+                height: 22px;
+            }
+        }
+
+        /* High DPI / Retina Display Adjustments */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+            .header::before {
+                background-size: 50px 50px;
+            }
+            
+            .animated-bg::before {
+                background-size: 50px 50px;
+            }
+        }
+
+        /* Landscape Orientation for Mobile Devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 0.5rem;
+                margin: 0.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .header p {
+                font-size: 0.7rem;
+            }
+            
+            .logout-button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            
+            .controls {
+                margin: 0.5rem;
+                gap: 0.5rem;
+            }
+            
+            .table-container {
+                margin: 0.5rem;
+            }
+            
+            .modal-content {
+                max-height: 85vh;
+                padding: 1rem;
+            }
+            
+            .dashboard {
+                margin: 0.5rem;
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        /* Touch Device Optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .btn,
+            .action-btn,
+            .contact-icon,
+            .candidate-name {
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .search-input {
+                padding: 0.75rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .form-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 0.75rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.3rem;
+            }
+            
+            .table-wrapper {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .header,
+            .controls,
+            .logout-button,
+            .dashboard,
+            .action-buttons,
+            .contact-icons,
+            .btn,
+            .modal {
+                display: none !important;
+            }
+            
+            .table-container {
+                margin: 0;
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            table {
+                width: 100%;
+                font-size: 10pt;
+                color: #000;
+                background: white;
+            }
+            
+            th, td {
+                border: 1px solid #000;
+                padding: 0.3rem;
+                background: white;
+                color: #000;
+            }
+              th {
+                background: #f0f0f0 !important;
+            }
         }
 
         .calendar-nav {
