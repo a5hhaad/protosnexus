@@ -26,8 +26,7 @@ function getPool() {
 async function initializeTables() {
   const client = getPool();
   
-  try {
-    // Create candidates table
+  try {    // Create candidates table
     await client.query(`
       CREATE TABLE IF NOT EXISTS candidates (
         id SERIAL PRIMARY KEY,
@@ -39,9 +38,22 @@ async function initializeTables() {
         experience VARCHAR(255),
         skills TEXT,
         status VARCHAR(100) DEFAULT 'pending',
+        interview TIMESTAMP,
+        interview_type VARCHAR(100),
+        company VARCHAR(255),
+        remarks TEXT,
         date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Add new columns to existing table if they don't exist
+    await client.query(`
+      ALTER TABLE candidates 
+      ADD COLUMN IF NOT EXISTS interview TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS interview_type VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS company VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS remarks TEXT
     `);
     
     // Create history table
@@ -97,8 +109,7 @@ exports.handler = async (event, context) => {
         console.log('📋 Fetching all candidates...');
         result = await client.query('SELECT * FROM candidates ORDER BY date_added DESC');
         console.log(`✅ Found ${result.rows.length} candidates`);
-        
-        // Convert PostgreSQL result to frontend format
+          // Convert PostgreSQL result to frontend format
         const candidates = result.rows.map(row => ({
           id: row.candidate_id,
           name: row.name,
@@ -108,6 +119,10 @@ exports.handler = async (event, context) => {
           experience: row.experience,
           skills: row.skills,
           status: row.status,
+          interview: row.interview ? row.interview.toISOString() : null,
+          interviewType: row.interview_type,
+          company: row.company,
+          remarks: row.remarks,
           dateAdded: row.date_added,
           lastUpdated: row.last_updated
         }));
@@ -126,11 +141,10 @@ exports.handler = async (event, context) => {
         const candidateId = Date.now().toString();
         
         console.log('📝 Candidate data:', newCandidate.name);
-        
-        // Insert new candidate
+          // Insert new candidate
         await client.query(`
-          INSERT INTO candidates (candidate_id, name, email, phone, position, experience, skills, status)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          INSERT INTO candidates (candidate_id, name, email, phone, position, experience, skills, status, interview, interview_type, company, remarks)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         `, [
           candidateId,
           newCandidate.name,
@@ -139,7 +153,11 @@ exports.handler = async (event, context) => {
           newCandidate.position,
           newCandidate.experience,
           newCandidate.skills,
-          newCandidate.status || 'pending'
+          newCandidate.status || 'pending',
+          newCandidate.interview ? new Date(newCandidate.interview) : null,
+          newCandidate.interviewType,
+          newCandidate.company,
+          newCandidate.remarks
         ]);
         
         console.log('✅ Candidate created successfully');        // Log to history with detailed information
@@ -179,8 +197,7 @@ exports.handler = async (event, context) => {
         if (!currentData) {
           throw new Error('Candidate not found');
         }
-        
-        // Track what fields changed
+          // Track what fields changed
         const changes = [];
         if (currentData.name !== updateData.name) changes.push(`Name: "${currentData.name}" → "${updateData.name}"`);
         if (currentData.email !== updateData.email) changes.push(`Email: "${currentData.email || 'None'}" → "${updateData.email || 'None'}"`);
@@ -190,12 +207,30 @@ exports.handler = async (event, context) => {
         if (currentData.skills !== updateData.skills) changes.push(`Skills: "${currentData.skills || 'None'}" → "${updateData.skills || 'None'}"`);
         if (currentData.status !== updateData.status) changes.push(`Status: "${currentData.status}" → "${updateData.status}"`);
         
+        // Check interview-related changes
+        const currentInterview = currentData.interview ? currentData.interview.toISOString() : null;
+        const newInterview = updateData.interview || null;
+        if (currentInterview !== newInterview) {
+          changes.push(`Interview: "${currentInterview || 'None'}" → "${newInterview || 'None'}"`);
+        }
+        if (currentData.interview_type !== updateData.interviewType) {
+          changes.push(`Interview Type: "${currentData.interview_type || 'None'}" → "${updateData.interviewType || 'None'}"`);
+        }
+        if (currentData.company !== updateData.company) {
+          changes.push(`Company: "${currentData.company || 'None'}" → "${updateData.company || 'None'}"`);
+        }
+        if (currentData.remarks !== updateData.remarks) {
+          changes.push(`Remarks: "${currentData.remarks || 'None'}" → "${updateData.remarks || 'None'}"`);
+        }
+        
         // Update candidate
         await client.query(`
           UPDATE candidates 
           SET name = $1, email = $2, phone = $3, position = $4, 
-              experience = $5, skills = $6, status = $7, last_updated = CURRENT_TIMESTAMP
-          WHERE candidate_id = $8
+              experience = $5, skills = $6, status = $7, 
+              interview = $8, interview_type = $9, company = $10, remarks = $11,
+              last_updated = CURRENT_TIMESTAMP
+          WHERE candidate_id = $12
         `, [
           updateData.name,
           updateData.email,
@@ -204,6 +239,10 @@ exports.handler = async (event, context) => {
           updateData.experience,
           updateData.skills,
           updateData.status,
+          updateData.interview ? new Date(updateData.interview) : null,
+          updateData.interviewType,
+          updateData.company,
+          updateData.remarks,
           id
         ]);
         

@@ -3227,8 +3227,7 @@
                 console.log('Loading candidates from API...');
                 const response = await fetch('/.netlify/functions/candidates');
                 if (response.ok) {
-                    const rawCandidates = await response.json();
-                    // Ensure all candidates have required properties
+                    const rawCandidates = await response.json();                    // Ensure all candidates have required properties
                     candidates = rawCandidates.map(candidate => ({
                         ...candidate,
                         blockers: candidate.blockers || [],
@@ -3238,7 +3237,10 @@
                         document: candidate.document || '',
                         company: candidate.company || '',
                         position: candidate.position || '',
-                        status: candidate.status || 'pending'
+                        status: candidate.status || 'pending',
+                        interview: candidate.interview || null,
+                        interviewType: candidate.interviewType || null,
+                        remarks: candidate.remarks || ''
                     }));
                     console.log('Candidates loaded:', candidates.length);
                 } else {
