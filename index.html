@@ -3642,19 +3642,20 @@
                 showToast('Candidate deleted successfully', 'success');
             }
         }
-        
-        // Generate a permanent unique link for a candidate
+          // Generate a short permanent unique link for a candidate
         function generatePermanentLink(candidateId, email) {
-            const timestamp = Date.now();
-            const random = Math.random().toString(36).substr(2, 9);
-            const uniqueString = `${candidateId}-${email}-${timestamp}-${random}`;
-            const token = btoa(uniqueString).replace(/[^a-zA-Z0-9]/g, '').substr(0, 32);
+            // Create a much shorter, cleaner link
+            const shortId = candidateId.toString().substr(-6); // Last 6 digits of ID
+            const emailHash = btoa(email).replace(/[^a-zA-Z0-9]/g, '').substr(0, 4); // First 4 chars of email hash
+            const timestamp = Date.now().toString(36); // Base36 timestamp for shorter string
+            
+            // Create a short token combining these elements
+            const shortToken = `${shortId}${emailHash}${timestamp}`.substr(0, 12);
             
             const baseUrl = window.location.origin + window.location.pathname;
-            const uniqueId = `${candidateId}_${timestamp}_${random}`;
-            const permanentLink = `${baseUrl}?candidate=${uniqueId}&token=${token}&access=${btoa(email).replace(/[^a-zA-Z0-9]/g, '')}`;
-            
-            return permanentLink;        }
+            const shortLink = `${baseUrl}?c=${candidateId}&t=${shortToken}`;
+            return shortLink;
+        }
 
         // Share candidate link for individual access
         function shareCandidateLink(candidateId) {

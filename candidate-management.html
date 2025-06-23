@@ -3051,9 +3051,18 @@
                 </div>
             </form>        </div>
     </div>    
-    <script>
-        // Check authentication on page load
+    <script>        // Check authentication on page load
         function checkAuthentication() {
+            // Check if accessing via shared candidate link
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedCandidateId = urlParams.get('c');
+            const shareToken = urlParams.get('t');
+            
+            if (sharedCandidateId && shareToken) {
+                // Allow access for shared candidate links without login
+                return 'shared';
+            }
+            
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             const userEmail = sessionStorage.getItem('userEmail');
               if (!isLoggedIn || isLoggedIn !== 'true' || userEmail !== 'a5hhaadx@gmail.com') {
@@ -3063,9 +3072,114 @@
             }
             return true;
         }        // Check authentication immediately
-        if (!checkAuthentication()) {
+        const authResult = checkAuthentication();
+        if (authResult === false) {
             // Stop script execution if not authenticated
             throw new Error('Authentication required');
+        }
+
+        // Handle shared candidate access
+        let isSharedAccess = authResult === 'shared';
+        let sharedCandidateId = null;
+
+        if (isSharedAccess) {
+            const urlParams = new URLSearchParams(window.location.search);
+            sharedCandidateId = urlParams.get('c');
+            
+            // Hide admin controls for shared access
+            document.addEventListener('DOMContentLoaded', function() {
+                setupSharedCandidateView(sharedCandidateId);
+            });
+        }
+
+        function setupSharedCandidateView(candidateId) {
+            // Hide admin elements
+            const elementsToHide = [
+                '.logout-button',
+                '.controls',
+                '.dashboard',
+                '.calendar-container'
+            ];
+            
+            elementsToHide.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => el.style.display = 'none');
+            });
+            
+            // Update header for shared view
+            const header = document.querySelector('.header');
+            if (header) {
+                header.innerHTML = `
+                    <div class="header-content">
+                        <h1>📋 Candidate Information</h1>
+                        <p>Public view - limited information displayed</p>
+                    </div>
+                `;
+            }
+            
+            // Filter candidates to show only the shared one
+            if (candidates && candidates.length > 0) {
+                const sharedCandidate = candidates.find(c => c.id == candidateId);
+                if (sharedCandidate) {
+                    candidates = [sharedCandidate];
+                    renderTable();
+                    
+                    // Hide sensitive columns (email, phone, actions)
+                    hidesensitiveColumns();
+                }
+            }
+        }        function hidesensitiveColumns() {
+            // Hide contact and action columns for public view
+            const style = document.createElement('style');
+            style.textContent = `
+                th:nth-child(10), td:nth-child(10), /* Contact */
+                th:nth-child(11), td:nth-child(11)  /* Actions */
+                { display: none !important; }
+                
+                .table-container::after {
+                    content: "📌 This is a public view with limited information";
+                    display: block;
+                    text-align: center;
+                    padding: 1rem;
+                    background: rgba(59, 130, 246, 0.1);
+                    color: #3b82f6;
+                    border-radius: 8px;
+                    margin-top: 1rem;
+                    font-weight: 500;
+                }
+                  /* Add a subtle footer for public view */
+                .shared-view-footer {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 20px;
+                    font-size: 0.9rem;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    z-index: 1000;
+                }
+                
+                @media (max-width: 768px) {
+                    .shared-view-footer {
+                        bottom: 10px;
+                        right: 10px;
+                        left: 10px;
+                        text-align: center;
+                        padding: 12px;
+                        font-size: 0.85rem;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Add a footer element for the shared view
+            const footer = document.createElement('div');
+            footer.className = 'shared-view-footer';
+            footer.innerHTML = '🔒 Public View - <a href="/" style="color: #3b82f6; text-decoration: none;">Back to main site</a>';
+            document.body.appendChild(footer);
         }
 
         // Logout function
@@ -3192,15 +3306,35 @@
                 }
             });
             console.log('Normalized remarks for all candidates based on their status');
-        }
-
-        // Initialize the application with API data
+        }        // Initialize the application with API data
         async function initializeApplication() {
             console.log('Initializing application...');
             try {
                 await loadCandidatesFromAPI();
                 // Normalize remarks to ensure consistency
                 normalizeRemarksForAllCandidates();
+                
+                // Handle shared candidate access
+                if (isSharedAccess && sharedCandidateId) {
+                    const sharedCandidate = candidates.find(c => c.id == sharedCandidateId);
+                    if (sharedCandidate) {
+                        candidates = [sharedCandidate];
+                        console.log('Filtered to shared candidate:', sharedCandidate.name);
+                    } else {
+                        console.error('Shared candidate not found');
+                        // Show error message
+                        document.body.innerHTML = `
+                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); color: white; text-align: center; padding: 2rem;">
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <h1 style="font-size: 2rem; margin-bottom: 1rem; color: #ef4444;">❌ Candidate Not Found</h1>
+                                    <p style="font-size: 1.1rem; opacity: 0.8;">The shared candidate link is invalid or expired.</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+                }
+                
                 renderTable();
                 updateDashboardIfExists();
             } catch (error) {
@@ -4602,18 +4736,19 @@
                 showToast('Error deleting candidate: ' + error.message, 'error');
             }
         }
-            
-            // Generate a permanent unique link for a candidate
+              // Generate a short permanent unique link for a candidate
         function generatePermanentLink(candidateId, email) {
-            const timestamp = Date.now();
-            const random = Math.random().toString(36).substr(2, 9);
-            const uniqueString = `${candidateId}-${email}-${timestamp}-${random}`;
-            const token = btoa(uniqueString).replace(/[^a-zA-Z0-9]/g, '').substr(0, 32);
+            // Create a much shorter, cleaner link
+            const shortId = candidateId.toString().substr(-6); // Last 6 digits of ID
+            const emailHash = btoa(email).replace(/[^a-zA-Z0-9]/g, '').substr(0, 4); // First 4 chars of email hash
+            const timestamp = Date.now().toString(36); // Base36 timestamp for shorter string
+            
+            // Create a short token combining these elements
+            const shortToken = `${shortId}${emailHash}${timestamp}`.substr(0, 12);
             
             const baseUrl = window.location.origin + window.location.pathname;
-            const uniqueId = `${candidateId}_${timestamp}_${random}`;
-            const permanentLink = `${baseUrl}?candidate=${uniqueId}&token=${token}&access=${btoa(email).replace(/[^a-zA-Z0-9]/g, '')}`;
-              return permanentLink;        }
+            const shortLink = `${baseUrl}?c=${candidateId}&t=${shortToken}`;
+              return shortLink;        }
 
         // Share candidate link for individual access
         function shareCandidateLink(candidateId) {
