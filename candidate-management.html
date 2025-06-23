@@ -3079,17 +3079,10 @@
 
         // Handle shared candidate access
         let isSharedAccess = authResult === 'shared';
-        let sharedCandidateId = null;
-
-        if (isSharedAccess) {
+        let sharedCandidateId = null;        if (isSharedAccess) {
             const urlParams = new URLSearchParams(window.location.search);
             sharedCandidateId = urlParams.get('c');
-            
-            // Hide admin controls for shared access
-            document.addEventListener('DOMContentLoaded', function() {
-                setupSharedCandidateView(sharedCandidateId);
-            });
-        }        function setupSharedCandidateView(candidateId) {
+        }function setupSharedCandidateView(candidateId) {
             // Hide admin elements but KEEP calendar, clock, and table visible
             const elementsToHide = [
                 '.logout-button',
@@ -3118,13 +3111,14 @@
                     </div>
                 `;
             }
-            
-            // Show ALL candidates but enable editing only for the shared candidate
+              // Show ALL candidates but enable editing only for the shared candidate
             if (candidates && candidates.length > 0) {
                 const sharedCandidate = candidates.find(c => c.id == candidateId);
                 if (sharedCandidate) {
                     // Don't filter candidates - show all but mark which one can be edited
                     window.editableCandidateId = parseInt(candidateId);
+                    console.log('Setting editableCandidateId to:', window.editableCandidateId, 'for candidate:', sharedCandidate.name);
+                    console.log('All candidate IDs:', candidates.map(c => ({id: c.id, name: c.name})));
                     renderTable();
                     
                     // Hide sensitive columns and apply public view restrictions
@@ -3338,11 +3332,17 @@
         async function initializeApplication() {
             console.log('Initializing application...');
             try {
-                await loadCandidatesFromAPI();                // Normalize remarks to ensure consistency
+                await loadCandidatesFromAPI();
+                // Normalize remarks to ensure consistency
                 normalizeRemarksForAllCandidates();
                 
-                renderTable();
-                updateDashboardIfExists();
+                // Handle shared candidate access AFTER candidates are loaded
+                if (isSharedAccess && sharedCandidateId) {
+                    setupSharedCandidateView(sharedCandidateId);
+                } else {
+                    renderTable();
+                    updateDashboardIfExists();
+                }
             } catch (error) {
                 console.error('Failed to initialize with API, using sample data:', error);
                 initializeWithSampleData();
@@ -4214,10 +4214,9 @@
                         </a>
                     </div>
                 </td>                <td>
-                    <div class="action-buttons">
-                        ${
+                    <div class="action-buttons">                        ${
                             // In shared mode, only show edit/delete buttons for the editable candidate
-                            window.editableCandidateId && window.editableCandidateId !== candidate.id ? 
+                            window.editableCandidateId && window.editableCandidateId != candidate.id ? 
                             '<span style="color: rgba(255, 255, 255, 0.5); font-size: 0.8rem;">View Only</span>' :
                             `<button class="action-btn edit-btn" onclick="editRow(${candidate.id})" title="Edit Candidate" tabindex="0">
                                 ✏️
@@ -4462,7 +4461,7 @@
             return shortForms[blocker] || blocker;
         }        function editRow(candidateId) {
             // Check if editing is allowed in shared mode
-            if (window.editableCandidateId && window.editableCandidateId !== candidateId) {
+            if (window.editableCandidateId && window.editableCandidateId != candidateId) {
                 alert('You can only edit your own candidate information in this shared view.');
                 return;
             }
@@ -4757,10 +4756,9 @@
                 currentEditingRow = null;
                 renderTable(); // Re-render to restore original state
             }
-        }        // Delete candidate
-        function deleteCandidate(candidateId) {
+        }        // Delete candidate        function deleteCandidate(candidateId) {
             // Check if deletion is allowed in shared mode
-            if (window.editableCandidateId && window.editableCandidateId !== candidateId) {
+            if (window.editableCandidateId && window.editableCandidateId != candidateId) {
                 alert('You can only delete your own candidate information in this shared view.');
                 return;
             }
