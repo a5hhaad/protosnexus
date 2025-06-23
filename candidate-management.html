@@ -3336,28 +3336,8 @@
         async function initializeApplication() {
             console.log('Initializing application...');
             try {
-                await loadCandidatesFromAPI();
-                // Normalize remarks to ensure consistency
-                normalizeRemarksForAllCandidates();                // Handle shared candidate access
-                if (isSharedAccess && sharedCandidateId) {
-                    const sharedCandidate = candidates.find(c => c.id == sharedCandidateId);
-                    if (sharedCandidate) {
-                        candidates = [sharedCandidate];
-                        console.log('Personal dashboard access for:', sharedCandidate.name);
-                    } else {
-                        console.error('Shared candidate not found');
-                        // Show error message
-                        document.body.innerHTML = `
-                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); color: white; text-align: center; padding: 2rem;">
-                                <div style="background: rgba(255, 255, 255, 0.05); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                                    <h1 style="font-size: 2rem; margin-bottom: 1rem; color: #ef4444;">❌ Candidate Not Found</h1>
-                                    <p style="font-size: 1.1rem; opacity: 0.8;">The personal link is invalid or expired.</p>
-                                </div>
-                            </div>
-                        `;
-                        return;
-                    }
-                }
+                await loadCandidatesFromAPI();                // Normalize remarks to ensure consistency
+                normalizeRemarksForAllCandidates();
                 
                 renderTable();
                 updateDashboardIfExists();
@@ -3455,13 +3435,11 @@
                 alert('Error opening modal: ' + error.message);
             }
         }        // Make function globally accessible
-        window.addCandidate = addCandidate;
-
-        // Schedule Interview Modal Functions
+        window.addCandidate = addCandidate;        // Schedule Interview Modal Functions
         function openScheduleModal() {
-            // Prevent scheduling interviews in shared mode
+            // In shared mode, allow candidates to schedule for themselves only
             if (window.editableCandidateId) {
-                alert('Scheduling interviews is not allowed in shared view mode.');
+                openScheduleModalForSharedCandidate();
                 return;
             }
 
@@ -3502,9 +3480,45 @@
             document.body.style.overflow = 'hidden';
         }
 
-        function closeScheduleModal() {
+        // Open schedule modal for shared candidate (only in shared mode)
+        function openScheduleModalForSharedCandidate() {
+            const modal = document.getElementById('scheduleModal');
+            const candidateSelect = document.getElementById('scheduleCandidate');
+            const companyInput = document.getElementById('scheduleCompany');
+            
+            // In shared mode, pre-select the editable candidate and disable dropdown
+            candidateSelect.innerHTML = '';
+            const editableCandidate = candidates.find(c => c.id === window.editableCandidateId);
+            if (editableCandidate) {
+                const option = document.createElement('option');
+                option.value = editableCandidate.id;
+                option.textContent = editableCandidate.name;
+                option.selected = true;
+                candidateSelect.appendChild(option);
+                candidateSelect.disabled = true; // Disable dropdown in shared mode
+                
+                // Pre-populate company if available
+                if (editableCandidate.company) {
+                    companyInput.value = editableCandidate.company;
+                }
+            }
+            
+            // Set default date to today
+            const today = new Date();
+            document.getElementById('scheduleDate').value = today.toISOString().split('T')[0];
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }        function closeScheduleModal() {
             document.getElementById('scheduleModal').style.display = 'none';
             document.body.style.overflow = 'auto';
+            
+            // Re-enable candidate select dropdown (in case it was disabled in shared mode)
+            const candidateSelect = document.getElementById('scheduleCandidate');
+            if (candidateSelect) {
+                candidateSelect.disabled = false;
+            }
+            
             // Clear form
             document.getElementById('scheduleForm').reset();
         }
@@ -3524,35 +3538,46 @@
                     closeScheduleModal();
                 }
             }
-        });
-
-        function handleScheduleSubmit(event) {
+        });        function handleScheduleSubmit(event) {
             event.preventDefault();
             
             const candidateId = parseInt(document.getElementById('scheduleCandidate').value);
             const company = document.getElementById('scheduleCompany').value;
             const date = document.getElementById('scheduleDate').value;
             const time = document.getElementById('scheduleTime').value;
-            const type = document.getElementById('scheduleType').value;              // Find the candidate and update their interview date
+            const type = document.getElementById('scheduleType').value;
+            
+            // Find the candidate and update their interview date
             const candidate = candidates.find(c => c.id == candidateId); // Use loose comparison
             if (candidate) {
                 const interviewDateTime = `${date}T${time}`;
                 candidate.interview = interviewDateTime;
                 candidate.interviewType = type; // Store interview type separately
                 candidate.company = company; // Update company name
-                  // Update status based on interview type
+                
+                // Update status based on interview type
                 if (type !== 'Rescheduling' && candidate.status !== 'Working') {
                     candidate.status = 'Interview';
                 }
-                  // Update remarks based on status
+                
+                // Update remarks based on status
                 candidate.remarks = getRemarksByStatus(candidate.status);
+                
+                // Save changes to API
+                updateCandidateInAPI(candidate).then(() => {
+                    console.log('Interview scheduled and saved to API');
+                    showToast(`Interview scheduled for ${candidate.name} at ${company} on ${formatDateTime(interviewDateTime)}`, 'success');
+                }).catch(error => {
+                    console.error('Failed to save interview to API:', error);
+                    showToast('Interview scheduled locally but failed to save to server', 'warning');
+                });
                 
                 // Refresh the table and calendar
                 renderTable();
                 renderCalendar();
                 displayUpcomingInterviews();
                 
-                closeScheduleModal();                showToast(`Interview scheduled for ${candidate.name} at ${company} on ${formatDateTime(interviewDateTime)}`, 'success');
+                closeScheduleModal();
             }
         }
         
