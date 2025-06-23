@@ -295,9 +295,7 @@
 
         .refresh-btn svg {
             transition: var(--transition);
-        }
-
-        .history-count {
+        }        .history-count {
             display: inline-block;
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
             color: var(--info-color);
@@ -307,6 +305,533 @@
             font-size: 0.85em;
             font-weight: 500;
             margin-left: 10px;
+        }
+
+        /* =============================================================================
+           COMPREHENSIVE RESPONSIVE DESIGN FOR ALL DEVICES
+           ============================================================================= */
+
+        /* Large Desktop (1400px and up) */
+        @media (min-width: 1400px) {
+            .container {
+                margin: 3rem;
+            }
+            
+            .header {
+                padding: 3rem;
+            }
+            
+            .header h1 {
+                font-size: 3rem;
+            }
+            
+            .header p {
+                font-size: 1.3rem;
+            }
+            
+            .content {
+                padding: 3rem;
+            }
+            
+            .back-button {
+                width: 56px;
+                height: 56px;
+                font-size: 1.4rem;
+                left: 3rem;
+            }
+        }
+
+        /* Standard Desktop (1024px to 1399px) */
+        @media (max-width: 1399px) {
+            .container {
+                margin: 2.5rem;
+            }
+            
+            .header {
+                padding: 2.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2.7rem;
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+            }
+            
+            .content {
+                padding: 2.5rem;
+            }
+        }
+
+        /* Tablet Landscape (768px to 1023px) */
+        @media (max-width: 1023px) {
+            .container {
+                margin: 1.5rem;
+                border-radius: 16px;
+            }
+            
+            .header {
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .back-button {
+                left: 1.5rem;
+                width: 44px;
+                height: 44px;
+                font-size: 1.1rem;
+            }
+            
+            .content {
+                padding: 1.5rem;
+            }
+            
+            .history-table {
+                font-size: 0.9rem;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 10px 12px;
+            }
+            
+            .empty-state {
+                padding: 50px 15px;
+            }
+            
+            .empty-state .icon {
+                font-size: 3.5em;
+            }
+            
+            .empty-state h2 {
+                font-size: 1.3em;
+            }
+            
+            .empty-state p {
+                font-size: 1rem;
+            }
+        }
+
+        /* Tablet Portrait (576px to 767px) */
+        @media (max-width: 767px) {
+            .container {
+                margin: 1rem;
+                border-radius: 14px;
+            }
+            
+            .header {
+                padding: 1rem;
+                position: relative;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 0.3rem;
+                margin-top: 0.5rem;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .back-button {
+                left: 1rem;
+                top: 1rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+                border-radius: 10px;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .history-table {
+                font-size: 0.8rem;
+                border-radius: 10px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 8px 10px;
+            }
+            
+            .empty-state {
+                padding: 40px 10px;
+            }
+            
+            .empty-state .icon {
+                font-size: 3em;
+                margin-bottom: 15px;
+            }
+            
+            .empty-state h2 {
+                font-size: 1.2em;
+                margin-bottom: 8px;
+            }
+            
+            .empty-state p {
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            
+            .timestamp {
+                font-size: 0.8em;
+            }
+            
+            .action {
+                font-size: 0.75em;
+                padding: 3px 6px;
+            }
+        }
+
+        /* Mobile Landscape (481px to 575px) */
+        @media (max-width: 575px) {
+            .container {
+                margin: 0.75rem;
+                border-radius: 12px;
+            }
+            
+            .header {
+                padding: 0.75rem;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+                margin-top: 0.3rem;
+            }
+            
+            .header p {
+                font-size: 0.85rem;
+            }
+            
+            .back-button {
+                left: 0.75rem;
+                top: 0.75rem;
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+                border-radius: 8px;
+            }
+            
+            .content {
+                padding: 0.75rem;
+            }
+            
+            /* Make table horizontally scrollable */
+            .history-table {
+                font-size: 0.75rem;
+                min-width: 500px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 6px 8px;
+                white-space: nowrap;
+            }
+            
+            /* Table container with horizontal scroll */
+            .content > div:last-child {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .empty-state {
+                padding: 35px 8px;
+            }
+            
+            .empty-state .icon {
+                font-size: 2.5em;
+                margin-bottom: 12px;
+            }
+            
+            .empty-state h2 {
+                font-size: 1.1em;
+                margin-bottom: 6px;
+            }
+            
+            .empty-state p {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Mobile Portrait (320px to 480px) */
+        @media (max-width: 480px) {
+            .container {
+                margin: 0.5rem;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 0.5rem;
+                text-align: left;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem;
+                margin-top: 0.5rem;
+                margin-bottom: 0.2rem;
+                line-height: 1.2;
+            }
+            
+            .header p {
+                font-size: 0.8rem;
+                line-height: 1.3;
+            }
+            
+            .back-button {
+                left: 0.5rem;
+                top: 0.5rem;
+                width: 34px;
+                height: 34px;
+                font-size: 0.85rem;
+                border-radius: 6px;
+            }
+            
+            .content {
+                padding: 0.5rem;
+            }
+            
+            .history-table {
+                font-size: 0.7rem;
+                min-width: 450px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 5px 6px;
+                font-size: 0.7rem;
+            }
+            
+            .empty-state {
+                padding: 30px 5px;
+            }
+            
+            .empty-state .icon {
+                font-size: 2.2em;
+                margin-bottom: 10px;
+            }
+            
+            .empty-state h2 {
+                font-size: 1rem;
+                margin-bottom: 5px;
+            }
+            
+            .empty-state p {
+                font-size: 0.8rem;
+                line-height: 1.4;
+            }
+            
+            .timestamp {
+                font-size: 0.7em;
+            }
+            
+            .action {
+                font-size: 0.65em;
+                padding: 2px 4px;
+                border-radius: 4px;
+            }
+            
+            .history-count {
+                font-size: 0.75em;
+                padding: 3px 8px;
+                margin-left: 5px;
+            }
+        }
+
+        /* Extra Small Mobile (Below 320px) */
+        @media (max-width: 319px) {
+            .container {
+                margin: 0.25rem;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .header p {
+                font-size: 0.75rem;
+            }
+            
+            .back-button {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+            
+            .history-table {
+                font-size: 0.65rem;
+                min-width: 400px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 4px 5px;
+            }
+            
+            .empty-state .icon {
+                font-size: 2em;
+            }
+            
+            .empty-state h2 {
+                font-size: 0.9rem;
+            }
+            
+            .empty-state p {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Landscape Orientation for Mobile Devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .container {
+                margin: 0.5rem;
+            }
+            
+            .header {
+                padding: 0.75rem;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+                margin-top: 0.2rem;
+                margin-bottom: 0.2rem;
+            }
+            
+            .header p {
+                font-size: 0.8rem;
+            }
+            
+            .back-button {
+                top: 0.75rem;
+                left: 0.75rem;
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+            
+            .content {
+                padding: 0.75rem;
+            }
+            
+            .empty-state {
+                padding: 20px 10px;
+            }
+            
+            .empty-state .icon {
+                font-size: 2em;
+                margin-bottom: 8px;
+            }
+            
+            .empty-state h2 {
+                font-size: 1rem;
+                margin-bottom: 4px;
+            }
+            
+            .empty-state p {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Touch Device Optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .back-button {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .history-table th,
+            .history-table td {
+                min-height: 44px;
+                padding: 8px 12px;
+            }
+            
+            /* Enhanced scrolling for table */
+            .content > div:last-child {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+            }
+        }
+
+        /* High DPI / Retina Display Adjustments */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+            .animated-bg::before {
+                background-size: 50px 50px;
+            }
+            
+            .header::before {
+                background-size: 100px 100px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .animated-bg,
+            .header::before,
+            .back-button {
+                display: none;
+            }
+            
+            .container {
+                margin: 0;
+                box-shadow: none;
+                border: 1px solid #ccc;
+                background: white;
+            }
+            
+            .header {
+                background: white;
+                border-bottom: 1px solid #ccc;
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                color: black;
+                font-size: 1.5rem;
+            }
+            
+            .header p {
+                color: #666;
+            }
+            
+            .history-table {
+                background: white;
+                border: 1px solid #ccc;
+            }
+            
+            .history-table th {
+                background: #f5f5f5;
+                color: black;
+            }
+            
+            .history-table td {
+                color: black;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .action {
+                background: #f0f0f0 !important;
+                color: #333 !important;
+                border: 1px solid #ccc !important;
+            }
+            
+            .empty-state {
+                color: #666;
+            }
         }
     </style>
 </head>
