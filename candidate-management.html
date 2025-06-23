@@ -3024,10 +3024,40 @@
                 <div class="form-group">
                     <label for="scheduleDate">Interview Date</label>
                     <input type="date" id="scheduleDate" class="form-input" required>
-                </div>
-                <div class="form-group">
+                </div>                <div class="form-group">
                     <label for="scheduleTime">Interview Time</label>
-                    <input type="time" id="scheduleTime" class="form-input" required>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select id="scheduleHour" class="form-input" required style="flex: 1;">
+                            <option value="">Hour</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                        <span style="color: rgba(255, 255, 255, 0.7);">:</span>
+                        <select id="scheduleMinutes" class="form-input" required style="flex: 1;">
+                            <option value="">Min</option>
+                            <option value="00">00</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="30">30</option>
+                            <option value="40">40</option>
+                            <option value="50">50</option>
+                        </select>
+                        <select id="scheduleAmPm" class="form-input" required style="flex: 1;">
+                            <option value="">AM/PM</option>
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="scheduleType">Interview Type</label>
@@ -3494,12 +3524,16 @@
                     }
                 } else {
                     companyInput.value = '';
-                }
-            });
+                }            });
             
             // Set default date to today
             const today = new Date();
             document.getElementById('scheduleDate').value = today.toISOString().split('T')[0];
+            
+            // Set default time values
+            document.getElementById('scheduleHour').value = '10'; // Default to 10 AM
+            document.getElementById('scheduleMinutes').value = '00';
+            document.getElementById('scheduleAmPm').value = 'AM';
             
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
@@ -3527,10 +3561,14 @@
                     companyInput.value = editableCandidate.company;
                 }
             }
-            
-            // Set default date to today
+              // Set default date to today
             const today = new Date();
             document.getElementById('scheduleDate').value = today.toISOString().split('T')[0];
+            
+            // Set default time values
+            document.getElementById('scheduleHour').value = '10'; // Default to 10 AM
+            document.getElementById('scheduleMinutes').value = '00';
+            document.getElementById('scheduleAmPm').value = 'AM';
             
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
@@ -3543,9 +3581,13 @@
             if (candidateSelect) {
                 candidateSelect.disabled = false;
             }
-            
-            // Clear form
+              // Clear form
             document.getElementById('scheduleForm').reset();
+            
+            // Reset time dropdowns to default values
+            document.getElementById('scheduleHour').value = '';
+            document.getElementById('scheduleMinutes').value = '';
+            document.getElementById('scheduleAmPm').value = '';
         }
 
         // Close modal when clicking outside or pressing Escape
@@ -3569,7 +3611,29 @@
             const candidateId = parseInt(document.getElementById('scheduleCandidate').value);
             const company = document.getElementById('scheduleCompany').value;
             const date = document.getElementById('scheduleDate').value;
-            const time = document.getElementById('scheduleTime').value;
+            
+            // Construct time from separate dropdowns
+            const hour = document.getElementById('scheduleHour').value;
+            const minutes = document.getElementById('scheduleMinutes').value;
+            const ampm = document.getElementById('scheduleAmPm').value;
+            
+            // Validate time inputs
+            if (!hour || !minutes || !ampm) {
+                alert('Please select hour, minutes, and AM/PM for the interview time.');
+                return;
+            }
+            
+            // Convert to 24-hour format
+            let hour24 = parseInt(hour);
+            if (ampm === 'PM' && hour24 !== 12) {
+                hour24 += 12;
+            } else if (ampm === 'AM' && hour24 === 12) {
+                hour24 = 0;
+            }
+            
+            // Format time as HH:MM
+            const time = `${hour24.toString().padStart(2, '0')}:${minutes}`;
+            
             const type = document.getElementById('scheduleType').value;
             
             // Find the candidate and update their interview date
