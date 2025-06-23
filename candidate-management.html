@@ -2827,9 +2827,8 @@
                 <div class="calendar-day-header">Fri</div>
                 <div class="calendar-day-header">Sat</div>
                 <!-- Calendar days will be populated by JavaScript -->
-            </div>
-            <div style="text-align: center; margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">
-                Double-click any date to schedule an interview
+            </div>            <div style="text-align: center; margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">
+                View-only calendar - Interview dates displayed
             </div>
         </div>
         
@@ -3090,15 +3089,12 @@
             document.addEventListener('DOMContentLoaded', function() {
                 setupSharedCandidateView(sharedCandidateId);
             });
-        }
-
-        function setupSharedCandidateView(candidateId) {
-            // Hide admin elements
+        }        function setupSharedCandidateView(candidateId) {
+            // Hide admin elements but KEEP calendar, clock, and table visible
             const elementsToHide = [
                 '.logout-button',
                 '.controls',
-                '.dashboard',
-                '.calendar-container'
+                '.dashboard'
             ];
             
             elementsToHide.forEach(selector => {
@@ -3106,38 +3102,49 @@
                 elements.forEach(el => el.style.display = 'none');
             });
             
-            // Update header for shared view
+            // SHOW calendar container, upcoming interviews, and clock
+            const calendarContainer = document.querySelector('.calendar-container');
+            if (calendarContainer) {
+                calendarContainer.style.display = 'flex'; // Show calendar section
+            }
+            
+            // Update header for shared view with more welcoming message
             const header = document.querySelector('.header');
             if (header) {
                 header.innerHTML = `
                     <div class="header-content">
-                        <h1>📋 Candidate Information</h1>
-                        <p>Public view - limited information displayed</p>
+                        <h1>📋 Protos Nexus - Candidate Portal</h1>
+                        <p>Real-time candidate information and interview scheduling</p>
                     </div>
                 `;
             }
             
-            // Filter candidates to show only the shared one
+            // DON'T filter candidates - show ALL candidates for complete view
             if (candidates && candidates.length > 0) {
-                const sharedCandidate = candidates.find(c => c.id == candidateId);
-                if (sharedCandidate) {
-                    candidates = [sharedCandidate];
-                    renderTable();
-                    
-                    // Hide sensitive columns (email, phone, actions)
-                    hidesensitiveColumns();
-                }
+                // Keep all candidates visible
+                renderTable();
+                
+                // Hide sensitive columns (contact, actions) but show all data
+                hidesensitiveColumns();
+                
+                // Initialize calendar and clock features
+                renderCalendar();
+                displayUpcomingInterviews();
+                initializeSandClock();
             }
         }        function hidesensitiveColumns() {
-            // Hide contact and action columns for public view
+            // Hide contact and action columns for public view but keep table fully functional
             const style = document.createElement('style');
             style.textContent = `
                 th:nth-child(10), td:nth-child(10), /* Contact */
                 th:nth-child(11), td:nth-child(11)  /* Actions */
                 { display: none !important; }
                 
+                /* Hide admin-only controls within calendar */
+                .calendar-plus-btn { display: none !important; }
+                
                 .table-container::after {
-                    content: "📌 This is a public view with limited information";
+                    content: "📌 Real-time candidate information portal - Contact details hidden for privacy";
                     display: block;
                     text-align: center;
                     padding: 1rem;
@@ -3147,7 +3154,8 @@
                     margin-top: 1rem;
                     font-weight: 500;
                 }
-                  /* Add a subtle footer for public view */
+                
+                /* Enhanced public view footer */
                 .shared-view-footer {
                     position: fixed;
                     bottom: 20px;
@@ -3178,7 +3186,7 @@
             // Add a footer element for the shared view
             const footer = document.createElement('div');
             footer.className = 'shared-view-footer';
-            footer.innerHTML = '🔒 Public View - <a href="/" style="color: #3b82f6; text-decoration: none;">Back to main site</a>';
+            footer.innerHTML = '🌐 Public Portal - <a href="/" style="color: #3b82f6; text-decoration: none;">Main Site</a>';
             document.body.appendChild(footer);
         }
 
@@ -3313,26 +3321,11 @@
                 await loadCandidatesFromAPI();
                 // Normalize remarks to ensure consistency
                 normalizeRemarksForAllCandidates();
-                
-                // Handle shared candidate access
+                  // Handle shared candidate access
                 if (isSharedAccess && sharedCandidateId) {
-                    const sharedCandidate = candidates.find(c => c.id == sharedCandidateId);
-                    if (sharedCandidate) {
-                        candidates = [sharedCandidate];
-                        console.log('Filtered to shared candidate:', sharedCandidate.name);
-                    } else {
-                        console.error('Shared candidate not found');
-                        // Show error message
-                        document.body.innerHTML = `
-                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); color: white; text-align: center; padding: 2rem;">
-                                <div style="background: rgba(255, 255, 255, 0.05); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                                    <h1 style="font-size: 2rem; margin-bottom: 1rem; color: #ef4444;">❌ Candidate Not Found</h1>
-                                    <p style="font-size: 1.1rem; opacity: 0.8;">The shared candidate link is invalid or expired.</p>
-                                </div>
-                            </div>
-                        `;
-                        return;
-                    }
+                    console.log('Public portal access - showing all candidates with limited admin features');
+                    // Don't filter candidates - show all for complete portal view
+                    // The setupSharedCandidateView will handle hiding sensitive info
                 }
                 
                 renderTable();
