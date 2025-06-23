@@ -4756,7 +4756,10 @@
                 currentEditingRow = null;
                 renderTable(); // Re-render to restore original state
             }
-        }        // Delete candidate        function deleteCandidate(candidateId) {
+        }
+
+        // Delete candidate
+        function deleteCandidate(candidateId) {
             // Check if deletion is allowed in shared mode
             if (window.editableCandidateId && window.editableCandidateId != candidateId) {
                 alert('You can only delete your own candidate information in this shared view.');
