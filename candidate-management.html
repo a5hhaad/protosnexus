@@ -3108,31 +3108,49 @@
                 calendarContainer.style.display = 'flex'; // Show calendar section
             }
             
-            // Update header for shared view with more welcoming message
+            // Update header for shared view with personalized message
             const header = document.querySelector('.header');
             if (header) {
                 header.innerHTML = `
                     <div class="header-content">
                         <h1>📋 Protos Nexus - Candidate Portal</h1>
-                        <p>Real-time candidate information and interview scheduling</p>
+                        <p>View all candidates and edit your own information</p>
                     </div>
                 `;
             }
             
-            // DON'T filter candidates - show ALL candidates for complete view
+            // Show ALL candidates but enable editing only for the shared candidate
             if (candidates && candidates.length > 0) {
-                // Keep all candidates visible
-                renderTable();
-                
-                // Hide sensitive columns (contact, actions) but show all data
-                hidesensitiveColumns();
+                const sharedCandidate = candidates.find(c => c.id == candidateId);
+                if (sharedCandidate) {
+                    // Don't filter candidates - show all but mark which one can be edited
+                    window.editableCandidateId = parseInt(candidateId);
+                    renderTable();
+                    
+                    // Hide sensitive columns and apply public view restrictions
+                    hidesensitiveColumns();
+                    
+                    console.log('Public view loaded - editable candidate:', sharedCandidate.name);
+                } else {
+                    console.error('Candidate not found');
+                    // Show error message
+                    document.body.innerHTML = `
+                        <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); color: white; text-align: center; padding: 2rem;">
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <h1 style="font-size: 2rem; margin-bottom: 1rem; color: #ef4444;">❌ Access Denied</h1>
+                                <p style="font-size: 1.1rem; opacity: 0.8;">The candidate link is invalid or expired.</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
                 
                 // Initialize calendar and clock features
                 renderCalendar();
                 displayUpcomingInterviews();
                 initializeSandClock();
             }
-        }        function hidesensitiveColumns() {
+        }function hidesensitiveColumns() {
             // Hide contact and action columns for public view but keep table fully functional
             const style = document.createElement('style');
             style.textContent = `
@@ -3320,12 +3338,25 @@
             try {
                 await loadCandidatesFromAPI();
                 // Normalize remarks to ensure consistency
-                normalizeRemarksForAllCandidates();
-                  // Handle shared candidate access
+                normalizeRemarksForAllCandidates();                // Handle shared candidate access
                 if (isSharedAccess && sharedCandidateId) {
-                    console.log('Public portal access - showing all candidates with limited admin features');
-                    // Don't filter candidates - show all for complete portal view
-                    // The setupSharedCandidateView will handle hiding sensitive info
+                    const sharedCandidate = candidates.find(c => c.id == sharedCandidateId);
+                    if (sharedCandidate) {
+                        candidates = [sharedCandidate];
+                        console.log('Personal dashboard access for:', sharedCandidate.name);
+                    } else {
+                        console.error('Shared candidate not found');
+                        // Show error message
+                        document.body.innerHTML = `
+                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); color: white; text-align: center; padding: 2rem;">
+                                <div style="background: rgba(255, 255, 255, 0.05); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                    <h1 style="font-size: 2rem; margin-bottom: 1rem; color: #ef4444;">❌ Candidate Not Found</h1>
+                                    <p style="font-size: 1.1rem; opacity: 0.8;">The personal link is invalid or expired.</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
                 }
                 
                 renderTable();
@@ -3407,8 +3438,13 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Add new candidate
-        function addCandidate() {
+        // Add new candidate        function addCandidate() {
+            // Prevent adding candidates in shared mode
+            if (window.editableCandidateId) {
+                alert('Adding new candidates is not allowed in shared view mode.');
+                return;
+            }
+
             console.log('addCandidate function called');
             try {
                 // Open modal for new candidate (don't add to array yet)
@@ -3424,8 +3460,14 @@
 
         // Schedule Interview Modal Functions
         function openScheduleModal() {
+            // Prevent scheduling interviews in shared mode            if (window.editableCandidateId) {
+                alert('Scheduling interviews is not allowed in shared view mode.');
+                return;
+            }
+
             const modal = document.getElementById('scheduleModal');
-            const candidateSelect = document.getElementById('scheduleCandidate');            const companyInput = document.getElementById('scheduleCompany');
+            const candidateSelect = document.getElementById('scheduleCandidate');
+            const companyInput = document.getElementById('scheduleCompany');
             
             // Clear and populate candidate dropdown (exclude Working status)
             candidateSelect.innerHTML = '<option value="">Choose a candidate...</option>';
@@ -4144,15 +4186,19 @@
                             🔗
                         </a>
                     </div>
-                </td>
-                <td>
+                </td>                <td>
                     <div class="action-buttons">
-                        <button class="action-btn edit-btn" onclick="editRow(${candidate.id})" title="Edit Candidate" tabindex="0">
-                            ✏️
-                        </button>
-                        <button class="action-btn delete-btn" onclick="deleteCandidate(${candidate.id})" title="Delete Candidate" tabindex="0">
-                            🗑️
-                        </button>
+                        ${
+                            // In shared mode, only show edit/delete buttons for the editable candidate
+                            window.editableCandidateId && window.editableCandidateId !== candidate.id ? 
+                            '<span style="color: rgba(255, 255, 255, 0.5); font-size: 0.8rem;">View Only</span>' :
+                            `<button class="action-btn edit-btn" onclick="editRow(${candidate.id})" title="Edit Candidate" tabindex="0">
+                                ✏️
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteCandidate(${candidate.id})" title="Delete Candidate" tabindex="0">
+                                🗑️
+                            </button>`
+                        }
                     </div>
                 </td>
             `;
@@ -4388,6 +4434,12 @@
             };
             return shortForms[blocker] || blocker;
         }        function editRow(candidateId) {
+            // Check if editing is allowed in shared mode
+            if (window.editableCandidateId && window.editableCandidateId !== candidateId) {
+                alert('You can only edit your own candidate information in this shared view.');
+                return;
+            }
+
             // Cancel any existing edits
             if (currentEditingRow) {
                 cancelRowEdit();
@@ -4680,6 +4732,12 @@
             }
         }        // Delete candidate
         function deleteCandidate(candidateId) {
+            // Check if deletion is allowed in shared mode
+            if (window.editableCandidateId && window.editableCandidateId !== candidateId) {
+                alert('You can only delete your own candidate information in this shared view.');
+                return;
+            }
+
             const candidate = candidates.find(c => c.id == candidateId);
             if (!candidate) {
                 showToast('Candidate not found', 'error');
@@ -5114,11 +5172,16 @@
                 <div class="stat-card">
                     <div class="stat-number">${stats.blockers}</div>
                     <div class="stat-label">With Blockers</div>
-                </div>            `;
-        }
+                </div>            `;        }
         
         // Export data functionality - Excel format
         function exportData() {
+            // Prevent data export in shared mode
+            if (window.editableCandidateId) {
+                alert('Data export is not allowed in shared view mode.');
+                return;
+            }
+
             // Prepare data for Excel export
             const exportData = candidates.map(candidate => {
                 return {
@@ -5156,15 +5219,18 @@
                 {wch: 25}, // Email
                 {wch: 15}  // Phone
             ];
-            ws['!cols'] = colWidths;            // Generate filename with current date
+            ws['!cols'] = colWidths;
+            
+            // Generate filename with current date
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
             const filename = `ProtosNexus_${dateStr}.xlsx`;
+              // Download the Excel file
+            XLSX.writeFile(wb, filename);
+            
+            showToast(`Excel file exported successfully: ${filename}`, 'success');
+        }
 
-            // Download the Excel file
-            XLSX.writeFile(wb, filename);              showToast(`Excel file exported successfully: ${filename}`, 'success');        }
-
-        
         // History tracking functionality
         function logChange(action, candidateName, details) {
             const timestamp = new Date().toISOString();
