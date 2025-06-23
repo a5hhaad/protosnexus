@@ -1,0 +1,10 @@
+# Files flagged for deletion (unnecessary/unwanted):
+
+- api/test-neon.js
+- api/test.js
+- api/candidates-neon.js
+- api/history-neon.js
+- setup-neon.sh
+- NEON_SETUP.md
+
+If you want to keep any of these, please let me know before deletion.
